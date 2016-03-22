@@ -469,6 +469,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("cut_TKU_singleTrack", &only_track_in_TKU, "cut_TKU_singleTrack/I");
     outputTree->Branch("cut_TKU_PValue", &goodPValue, "cut_TKU_PValue/I");
     outputTree->Branch("cut_allPassed", &goodParticle, "cut_allPassed/I");
+	// Add new branch here for more cuts.
 
 }
 
