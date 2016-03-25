@@ -62,7 +62,7 @@ void MainWindow::getData(){
     //read_data->Read(inputFilename, outputFilename);
 
     // need to replace this with dialog box...but it'll do for testing.
-    QString calibrationFileName = "/home/victoria/work/Software/TOFReconstruction_v1/CalibrationFiles/run7417.dat";
+    QString calibrationFileName = "run7417_calibration_file.dat";
 
     double min_tof = 27.0;
     double max_tof = 40.0;

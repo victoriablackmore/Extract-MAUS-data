@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from ROOT import TFile, TCanvas, gDirectory, TTree, TH1F, TH2F, TMath
+from ROOT import TFile, TCanvas, gDirectory, TTree, TH1F, TH2F, TMath, TF1
 
 
 def main():
-    filename = "../run7469_extracted_data__MAUS2pt1.root"
+    filename = "/Users/Victoria/Documents/Work/MICE Data/run7469_extracted_data__MAUS2pt1.root"
 
     f = TFile(filename, 'read')
     tree = f.Get("T")
@@ -27,13 +27,20 @@ def do_plots(tree):
     detector = ["TOF0", "TOF1", "TKU"]
     #make_plots(detector, cut_number, tree, saveAs)
 
+    saveAs = "cutTest_tof_momentum_vs_tracker_momentum.pdf"
+    make_tof_vs_tracker_cut_plot(tree, saveAs)
+    
+    #saveAs = "plots_tof_momentum_vs_tracker_momentum.pdf"
+    #make_tof_vs_tracker_plots(tree, saveAs)
+
+    """
     for cut in range(0, 15):
         for det in detector:
             print "Printing plots for cut "+str(cut)+" at "+det
 
             saveAs = "plots_"+det+"_cut"+str(cut)+".pdf"
             make_plots(det, cut, tree, saveAs)
-
+    """
 
 
 
@@ -410,6 +417,182 @@ def make_plots(detector, cut_number, tree, saveAs):
     canvas.cd(2)
     det_ypy_fail.Draw("colz")
     canvas.Print(saveAs+")")
+
+
+
+
+
+
+def make_tof_vs_tracker_plots(tree, saveAs):
+    """
+        _noCut: Fill into histogram, regardless of whether it passes any cuts
+        _cut1: Fill histogram if PMT-timed position at TOF0 is OK
+        _cut2: Fill histogram if PMT-timed position at TOF1 is OK
+        _cut3: Fill histogram if Rayner Reconstruction at TOFs is OK
+        _cut4: Fill histogram if time-of-flight is OK
+        _cut5: Fill histogram if all 5 tracker planes were hit
+        _cut6: Fill histogram if all detectors hit
+        _cut7: Fill histogram if there was only one spacepoint at TOF0
+        _cut8: Fill histogram if there was only one spacepoint at TOF1
+        _cut9: Fill histogram if there was only one track in TKU
+        
+        _cut10: Fill histogram if _cut1 && _cut2 && _cut3 && _cut4
+        _cut11: Fill histogram if _cut10 && _cut7 && _cut8
+        _cut12: Fill histogram if _cut11 && _cut6 && _cut9
+        _cut13: Fill if _cut12 && Pvalue of track > 0.01
+        _cut14: Fill if all cuts are passed
+        
+        """
+    canvas = TCanvas('canvas', 'canvas', 800, 400)
+    canvas.Divide(2, 1)
+    
+    cuts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    for cut in cuts:
+        cut_description = get_cut_description(cut)
+        title_pass = "TOF P vs Tracker P, "+cut_description+"(pass);P at TKU (MeV/c);P at TOF1 (MeV/c)"
+        title_fail = "TOF P vs Tracker P, "+cut_description+"(fail);P at TKU (MeV/c);P at TOF1 (MeV/c)"
+    
+        cut_passed = TH2F('pass_'+cut_description, title_pass, 75, 150.0, 300.0, 75, 150.0, 300.0)
+        cut_failed = TH2F('fail_'+cut_description, title_fail, 75, 150.0, 300.0, 75, 150.0, 300.0)
+
+        for entry in tree:
+            tof1_xPixel, tof1_yPixel, tof1_x, tof1_y, tof1_px, tof1_py, tof1_pz = getValues("TOF1", cut, entry)
+            tku_x, tku_y, tku_px, tku_py, tku_pz = getValues("TKU", cut, entry)
+            
+            
+        
+            if tof1_px[1] is True and tof1_py[1] is True and tof1_pz[1] is True and tku_px[1] is True and tku_py[1] is True and tku_pz[1] is True:
+                tof1_p = np.sqrt(tof1_px[0]*tof1_px[0] + tof1_py[0]*tof1_py[0] + tof1_pz[0]*tof1_pz[0])
+                tku_p = np.sqrt(tku_px[0]*tku_px[0] + tku_py[0]*tku_py[0] + tku_pz[0]*tku_pz[0])
+                
+                cut_passed.Fill(tku_p, tof1_p)
+            else:
+                if tof1_px[0] != None and tof1_py[0] != None and tof1_pz[0] != None and tku_px[0] != None and tku_py[0] != None and tku_pz[0] != None:
+                    # Have to do this check as particles that don't make it to the tracker fail this cut
+                    # but also have no (px, py, pz) to fill into this histogram.
+                
+                    tof1_p = np.sqrt(tof1_px[0]*tof1_px[0] + tof1_py[0]*tof1_py[0] + tof1_pz[0]*tof1_pz[0])
+                    tku_p = np.sqrt(tku_px[0]*tku_px[0] + tku_py[0]*tku_py[0] + tku_pz[0]*tku_pz[0])
+                    cut_failed.Fill(tku_p, tof1_p)
+
+        canvas.cd(1)
+        cut_passed.Draw("colz")
+        canvas.cd(2)
+        cut_failed.Draw("colz")
+
+        if cut != 14:
+            canvas.Print(saveAs+"(")
+        else:
+            canvas.Print(saveAs+")")
+
+
+
+
+
+
+def make_tof_vs_tracker_cut_plot(tree, saveAs):
+    """
+        _noCut: Fill into histogram, regardless of whether it passes any cuts
+        _cut1: Fill histogram if PMT-timed position at TOF0 is OK
+        _cut2: Fill histogram if PMT-timed position at TOF1 is OK
+        _cut3: Fill histogram if Rayner Reconstruction at TOFs is OK
+        _cut4: Fill histogram if time-of-flight is OK
+        _cut5: Fill histogram if all 5 tracker planes were hit
+        _cut6: Fill histogram if all detectors hit
+        _cut7: Fill histogram if there was only one spacepoint at TOF0
+        _cut8: Fill histogram if there was only one spacepoint at TOF1
+        _cut9: Fill histogram if there was only one track in TKU
+        
+        _cut10: Fill histogram if _cut1 && _cut2 && _cut3 && _cut4
+        _cut11: Fill histogram if _cut10 && _cut7 && _cut8
+        _cut12: Fill histogram if _cut11 && _cut6 && _cut9
+        _cut13: Fill if _cut12 && Pvalue of track > 0.01
+        _cut14: Fill if all cuts are passed
+        
+        """
+    canvas = TCanvas('canvas', 'canvas', 1200, 400)
+    canvas.Divide(3, 1)
+    
+    cut_description = 'Test cut '
+    title_pass = "TOF P vs Tracker P, "+cut_description+"(pass);P at TKU (MeV/c);P at TOF1 (MeV/c)"
+    title_fail = "TOF P vs Tracker P, "+cut_description+"(fail);P at TKU (MeV/c);P at TOF1 (MeV/c)"
+        
+    cut_passed = TH2F('pass_'+cut_description, title_pass, 75, 150.0, 300.0, 75, 150.0, 300.0)
+    cut_failed = TH2F('fail_'+cut_description, title_fail, 75, 150.0, 300.0, 75, 150.0, 300.0)
+
+    momentum_difference = TH1F("momentum_diff", "Tracker P - TOF P; Tracker P - TOF P (MeV)", 50, -40.0, 10.0)
+    
+    p180_hist = TH1F("p180_hist", "Tracker P = 180MeV; TOF P (MeV)", 100, 175.0, 275.0)
+    p190_hist = TH1F("p190_hist", "Tracker P = 190MeV; TOF P (MeV)", 100, 175.0, 275.0)
+    p200_hist = TH1F("p200_hist", "Tracker P = 200MeV; TOF P (MeV)", 100, 175.0, 275.0)
+    p210_hist = TH1F("p210_hist", "Tracker P = 210MeV; TOF P (MeV)", 100, 175.0, 275.0)
+    p220_hist = TH1F("p220_hist", "Tracker P = 220MeV; TOF P (MeV)", 100, 175.0, 275.0)
+
+
+    lower_gradient = 0.9082
+    lower_intercept = 26.985
+    
+    upper_gradient = 0.7698
+    upper_intercept = 72.855
+    
+    for entry in tree:
+        tof1_xPixel, tof1_yPixel, tof1_x, tof1_y, tof1_px, tof1_py, tof1_pz = getValues("TOF1", 0, entry)
+        tku_x, tku_y, tku_px, tku_py, tku_pz = getValues("TKU", 0, entry)
+            
+            
+        if tof1_px[0] != None and tof1_py[0] != None and tof1_pz[0] != None and tku_px[0] != None and tku_py[0] != None and tku_pz[0] != None:
+            # Have to do this check as particles that don't make it to the tracker fail this cut
+            # but also have no (px, py, pz) to fill into this histogram.
+                    
+            tof1_p = np.sqrt(tof1_px[0]*tof1_px[0] + tof1_py[0]*tof1_py[0] + tof1_pz[0]*tof1_pz[0])
+            tku_p = np.sqrt(tku_px[0]*tku_px[0] + tku_py[0]*tku_py[0] + tku_pz[0]*tku_pz[0])
+            diff = tku_p - tof1_p
+            
+            momentum_difference.Fill(diff)
+
+            tof1_p_lower_limit = lower_gradient * tku_p + lower_intercept
+            tof1_p_upper_limit = upper_gradient * tku_p + upper_intercept
+            
+            #print 'tof1_p = ', tof1_p, ' --> given tku_p = ', tku_p, ' then upper limit is at ', tof1_p_upper_limit, ' and lower limit is at ', tof1_p_lower_limit
+
+            if tof1_p < tof1_p_upper_limit and tof1_p > tof1_p_lower_limit:
+                cut_passed.Fill(tku_p, tof1_p)
+            else:
+                cut_failed.Fill(tku_p, tof1_p)
+
+
+            if tku_p >= 179.0 and tku_p <= 181.0:
+                p180_hist.Fill(tof1_p)
+            elif tku_p >= 189.0 and tku_p <= 191.0:
+                p190_hist.Fill(tof1_p)
+            elif tku_p >= 199.0 and tku_p <= 201.0:
+                p200_hist.Fill(tof1_p)
+            elif tku_p >= 209.0 and tku_p <= 211.0:
+                p210_hist.Fill(tof1_p)
+            elif tku_p >= 219.0 and tku_p <= 221.0:
+                p220_hist.Fill(tof1_p)
+
+
+
+    canvas.cd(1)
+    cut_passed.Draw("colz")
+    canvas.cd(2)
+    cut_failed.Draw("colz")
+    canvas.cd(3)
+    momentum_difference.Draw('hist')
+
+    canvas.Print(saveAs)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
