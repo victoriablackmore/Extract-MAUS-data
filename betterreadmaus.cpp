@@ -359,6 +359,9 @@ void BetterReadMAUS::apply_calibration_TOF1(){
 void BetterReadMAUS::define_root_file(QString saveAs){
     outputFile = new TFile(saveAs.toStdString().c_str(), "RECREATE");
     outputTree = new TTree("T", "T");
+    
+    outputTree->Branch("SpillNumber", &spill_number, "SpillNumber/D");
+    outputTree->Branch("ReconstructedEventNumber", &reconstructed_event_number, "ReconstructedEventNumber/D");
 
     outputTree->Branch("TOF0_x", &TOF0_x, "TOF0_x/D");
     outputTree->Branch("TOF0_y", &TOF0_y, "TOF0_y/D");

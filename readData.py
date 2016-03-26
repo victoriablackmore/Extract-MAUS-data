@@ -6,7 +6,7 @@ from ROOT import TFile, TCanvas, gDirectory, TTree, TH1F, TH2F, TMath, TF1
 
 
 def main():
-    filename = "/Users/Victoria/Documents/Work/MICE Data/run7469_extracted_data__MAUS2pt1.root"
+    filename = "/Users/Victoria/Documents/Work/MICE Data/mc_3mm200_07469_3_extracted_data.root"
 
     f = TFile(filename, 'read')
     tree = f.Get("T")
@@ -30,17 +30,17 @@ def do_plots(tree):
     saveAs = "cutTest_tof_momentum_vs_tracker_momentum.pdf"
     make_tof_vs_tracker_cut_plot(tree, saveAs)
     
-    #saveAs = "plots_tof_momentum_vs_tracker_momentum.pdf"
-    #make_tof_vs_tracker_plots(tree, saveAs)
+    saveAs = "plots_tof_momentum_vs_tracker_momentum.pdf"
+    make_tof_vs_tracker_plots(tree, saveAs)
 
-    """
+
     for cut in range(0, 15):
         for det in detector:
             print "Printing plots for cut "+str(cut)+" at "+det
 
             saveAs = "plots_"+det+"_cut"+str(cut)+".pdf"
             make_plots(det, cut, tree, saveAs)
-    """
+
 
 
 
