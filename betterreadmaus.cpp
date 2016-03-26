@@ -24,6 +24,8 @@ void BetterReadMAUS::reset_particle_variables(){
     goodRaynerReconstruction = 0;
     goodTimeOfFlight = 0;
     all_detectors_hit = 0;
+    good_Wilbur_cut = 0;
+    good_tof_tracker_momentum = 0;
 }
 
 void BetterReadMAUS::reset_TOF0_variables(){
@@ -357,6 +359,9 @@ void BetterReadMAUS::apply_calibration_TOF1(){
 void BetterReadMAUS::define_root_file(QString saveAs){
     outputFile = new TFile(saveAs.toStdString().c_str(), "RECREATE");
     outputTree = new TTree("T", "T");
+    
+    outputTree->Branch("SpillNumber", &spill_number, "SpillNumber/D");
+    outputTree->Branch("ReconstructedEventNumber", &reconstructed_event_number, "ReconstructedEventNumber/D");
 
     outputTree->Branch("TOF0_x", &TOF0_x, "TOF0_x/D");
     outputTree->Branch("TOF0_y", &TOF0_y, "TOF0_y/D");
@@ -468,8 +473,11 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("cut_TOF1_singleHit", &only_hit_at_TOF1, "cut_TOF1_singleHit/I");
     outputTree->Branch("cut_TKU_singleTrack", &only_track_in_TKU, "cut_TKU_singleTrack/I");
     outputTree->Branch("cut_TKU_PValue", &goodPValue, "cut_TKU_PValue/I");
+    outputTree->Branch("cut_TOF_TKU_momentum", &good_Wilbur_cut, "cut_TOF_TKU_momentum/I");
+    outputTree->Branch("cut_tof1_tku_momentum", &good_tof_tracker_momentum, "cut_tof1_tku_momentum/I");
+    
+    // remember to update the selection for goodParticle if more cuts are added above
     outputTree->Branch("cut_allPassed", &goodParticle, "cut_allPassed/I");
-
 }
 
 
@@ -546,13 +554,37 @@ void BetterReadMAUS::readParticleEvent(){
         else{
             all_detectors_hit = 0;
         }
+        
+        if(particle_within_tof1_tku_momentum_selection()){
+            good_tof_tracker_momentum = 1;
+        }
+        else{
+            good_tof_tracker_momentum = 0;
+        }
+        
+        
+        if(particle_within_Wilbur_cut()){
+            good_Wilbur_cut = 1;
+        }
+        else{
+            good_Wilbur_cut = 0;
+        }
 
-
-        if(TOF0_goodPMTPosition == 1 && TOF1_goodPMTPosition == 1
-                && goodRaynerReconstruction ==1 && TKU_goodParticle == 1
-                && goodTimeOfFlight ==1 && all_detectors_hit == 1
-                && only_hit_at_TOF0 == 1 && only_hit_at_TOF1 == 1 && only_track_in_TKU == 1
-                && goodPValue == 1){
+        /*
+         * Particles pass ALL cuts if:
+         *      -- all_detectors_hit = 1 (TOF0_goodPMTPosition, TOF1_goodPMTPosition, TKU_goodParticle = 1)
+         *      -- goodRaynerReconstruction = 1
+         *      -- only_hit_at_TOF0 = 1
+         *      -- only_hit_at_TOF1 = 1
+         *      -- only_track_in_TKU = 1
+         *      -- goodPValue = 1
+         *      -- good_Wilbur_cut = 1 (previously used goodTimeOfFlight=1, which still
+         *   exists, but this should be an improvement)
+         */
+        if(goodRaynerReconstruction ==1 && goodTimeOfFlight == 1//good_tof_tracker_momentum == 1//good_Wilbur_cut == 1
+           && all_detectors_hit == 1    && only_hit_at_TOF0 == 1
+           && only_hit_at_TOF1 == 1     && only_track_in_TKU == 1
+           && goodPValue == 1){
             goodParticle = 1;
         }
         else{
@@ -934,4 +966,68 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
     goodRaynerReconstruction = result.value("good");
 
     std::cout << ".... reconstruction returned good = " << goodRaynerReconstruction << "\n";
+}
+
+
+
+
+
+bool BetterReadMAUS::particle_within_Wilbur_cut(){
+    /*
+     These cuts are based on an email from S. Wilbur on 17/03/16 at 15:46. The final
+     numbers still need checking with T. Mohayai.  When done, this function should be
+     updated.
+     */
+    
+    double e_tof = 25.95;
+    double mu_tof = TOF1_hitTime - TOF0_hitTime;
+    
+    if(mu_tof <= e_tof){
+        return false;
+    }
+    double velocity = e_tof/mu_tof;
+    double mu_mass = 105.658367;
+    
+    double p = mu_mass*velocity/TMath::Sqrt(1.0 - velocity*velocity);
+    
+    double tof_correction = mu_tof - e_tof + 25.95;
+    double p_correction = -1103.98 + 75.7111*tof_correction
+                            - 1.32053*tof_correction*tof_correction;
+    
+    
+    
+    return false; // this needs correcting when I hear back from Scott
+}
+
+
+
+bool BetterReadMAUS::particle_within_tof1_tku_momentum_selection(){
+    /*
+     These cuts are based on plotting (tracker P, tof1 P) and selecting
+     a region 0.9*rms around the maxima
+     */
+    
+    double upper_gradient = 0.7698;
+    double upper_intercept = 72.855;
+    
+    double lower_gradient = 0.9082;
+    double lower_intercept = 26.985;
+    
+    double upper, lower;
+    
+    if(TOF1_p == TMath::Infinity() || TKU_plane1_p == TMath::Infinity()){
+        return false;
+    }
+    else{
+        upper = upper_gradient*TKU_plane1_p + upper_intercept;
+        lower = lower_gradient*TKU_plane1_p + lower_intercept;
+        if(TOF1_p >= lower && TOF1_p <= upper){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    
+    return false;
 }

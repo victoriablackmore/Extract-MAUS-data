@@ -110,6 +110,8 @@ private:
     int all_detectors_hit;
     int only_hit_at_TOF0, only_hit_at_TOF1, only_track_in_TKU;
     int goodPValue;
+    int good_Wilbur_cut;
+    int good_tof_tracker_momentum;
 
     QVector<double> TOF0_horizontal_calibration;
     QVector<double> TOF0_vertical_calibration;
@@ -144,6 +146,9 @@ private:
     void particle_at_TOF0();
     void particle_at_TOF1();
     void particle_at_tracker();
+    
+    bool particle_within_Wilbur_cut();
+    bool particle_within_tof1_tku_momentum_selection();
 
 
 

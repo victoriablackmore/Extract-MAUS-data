@@ -2,3 +2,6 @@
 moc_*
 Makefile
 ExtractData
+*.pdf
+*.root
+*.zip

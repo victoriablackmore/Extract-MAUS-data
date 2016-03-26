@@ -169,7 +169,7 @@ double StepIBeamLine::pythagoras(double x, double y, double z) {
 }
 
 void StepIBeamLine::WriteOptics(std::string tag) {
-    TFile *f = new TFile("../QuadrupoleOutputs/optics.root", "recreate");
+    TFile *f = new TFile("optics.root", "recreate");
     TGraph *gMx11 = new TGraph();
     TGraph *gMx12 = new TGraph();
     TGraph *gMx21 = new TGraph();
@@ -349,9 +349,9 @@ void StepIBeamLine::PrepareForSlicing() {
     leg->AddEntry(gbox, "Top hat model", "L");
     leg->Draw("sames");
 
-    cg->SaveAs("../QuadrupoleOutputs/gradient.png");
-    cg->SaveAs("../QuadrupoleOutputs/gradient.pdf");
-    cg->SaveAs("../QuadrupoleOutputs/gradient.eps");
+    cg->SaveAs("gradient.png");
+    cg->SaveAs("gradient.pdf");
+    cg->SaveAs("gradient.eps");
 
 }
 
