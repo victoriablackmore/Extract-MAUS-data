@@ -93,6 +93,14 @@ private:
     double TKU_plane3_px, TKU_plane3_py, TKU_plane3_pz, TKU_plane3_p;
     double TKU_plane4_px, TKU_plane4_py, TKU_plane4_pz, TKU_plane4_p;
     double TKU_plane5_px, TKU_plane5_py, TKU_plane5_pz, TKU_plane5_p;
+    
+    double TKU_plane1_pull, TKU_plane2_pull, TKU_plane3_pull, TKU_plane4_pull, TKU_plane5_pull;
+    
+    double TKU_plane1_x_error, TKU_plane1_y_error, TKU_plane1_px_error, TKU_plane1_py_error, TKU_plane1_kappa_error;
+    double TKU_plane2_x_error, TKU_plane2_y_error, TKU_plane2_px_error, TKU_plane2_py_error, TKU_plane2_kappa_error;
+    double TKU_plane3_x_error, TKU_plane3_y_error, TKU_plane3_px_error, TKU_plane3_py_error, TKU_plane3_kappa_error;
+    double TKU_plane4_x_error, TKU_plane4_y_error, TKU_plane4_px_error, TKU_plane4_py_error, TKU_plane4_kappa_error;
+    double TKU_plane5_x_error, TKU_plane5_y_error, TKU_plane5_px_error, TKU_plane5_py_error, TKU_plane5_kappa_error;
 
     double TKU_Pvalue;
     double TKU_chiSquare;
