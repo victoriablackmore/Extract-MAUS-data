@@ -6,7 +6,7 @@ from ROOT import TFile, TCanvas, gDirectory, TTree, TH1F, TH2F, TMath, TF1
 
 
 def main():
-    filename = "/Users/Victoria/Documents/Work/MICE Data/mc_3mm200_07469_3_extracted_data.root"
+    filename = "/Users/Victoria/Documents/Work/MICE Data/Data run 7469/run7469_extracted_data__MAUS2pt1c.root"
 
     f = TFile(filename, 'read')
     tree = f.Get("T")
@@ -30,16 +30,16 @@ def do_plots(tree):
     saveAs = "cutTest_tof_momentum_vs_tracker_momentum.pdf"
     make_tof_vs_tracker_cut_plot(tree, saveAs)
     
-    saveAs = "plots_tof_momentum_vs_tracker_momentum.pdf"
-    make_tof_vs_tracker_plots(tree, saveAs)
+    #saveAs = "plots_tof_momentum_vs_tracker_momentum.pdf"
+    #make_tof_vs_tracker_plots(tree, saveAs)
 
 
-    for cut in range(0, 15):
-        for det in detector:
-            print "Printing plots for cut "+str(cut)+" at "+det
-
-            saveAs = "plots_"+det+"_cut"+str(cut)+".pdf"
-            make_plots(det, cut, tree, saveAs)
+#for cut in range(15, 16):
+#       for det in detector:
+#           print "Printing plots for cut "+str(cut)+" at "+det
+#
+#           saveAs = "plots_"+det+"_cut"+str(cut)+".pdf"
+#           make_plots(det, cut, tree, saveAs)
 
 
 
@@ -80,6 +80,7 @@ def  getValues(detector, cut_number, tree_entry):
     cut1, cut2, cut3, cut4, cut5 = False, False, False, False, False
     cut6, cut7, cut8, cut9, cut10 = False, False, False, False, False
     cut11, cut12, cut13, cut14 = False, False, False, False
+    cut15 = False
 
     if tree_entry.cut_TOF0_goodPMTPosition == 1:
         cut1 = True
@@ -110,6 +111,8 @@ def  getValues(detector, cut_number, tree_entry):
         cut13 = True
     if tree_entry.cut_allPassed == 1:
         cut14 = True
+    if tree_entry.cut_tof1_tku_momentum == 1:
+        cut15 = True
 
     if cut_number == 0:
         cut_passed = True
@@ -140,6 +143,9 @@ def  getValues(detector, cut_number, tree_entry):
     if cut_number == 13 and cut13:
         cut_passed = True
     if cut_number == 14 and cut14:
+        cut_passed = True
+    
+    if cut_number == 15 and cut14 and cut15:
         cut_passed = True
 
 
@@ -555,7 +561,7 @@ def make_tof_vs_tracker_cut_plot(tree, saveAs):
             
             #print 'tof1_p = ', tof1_p, ' --> given tku_p = ', tku_p, ' then upper limit is at ', tof1_p_upper_limit, ' and lower limit is at ', tof1_p_lower_limit
 
-            if tof1_p < tof1_p_upper_limit and tof1_p > tof1_p_lower_limit:
+            if tof1_p < tof1_p_upper_limit and tof1_p > tof1_p_lower_limit and entry.cut_allPassed==1:
                 cut_passed.Fill(tku_p, tof1_p)
             else:
                 cut_failed.Fill(tku_p, tof1_p)
