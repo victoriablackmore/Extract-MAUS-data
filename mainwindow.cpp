@@ -67,7 +67,7 @@ void MainWindow::getData(){
     double min_tof = 27.0;
     double max_tof = 40.0;
     double sim_ele_path = 11.0;
-    double data_ele_tof = 25.48;
+    double data_ele_tof = 25.48; // 25.48ns for data, 25.68ns for reconstructed MC
     double q7_current = 138.70;
     double q8_current = 209.80;
     double q9_current = 179.20;
