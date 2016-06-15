@@ -12,7 +12,7 @@ def main():
     f = TFile(filename, 'read')
     tree = f.Get("T")
     
-    cut_numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    cut_numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     
     for i in cut_numbers:
         print 'Processing cut ', i
@@ -36,14 +36,10 @@ def plot_pass_fail_cut(tree, cut_number):
         _cut8: Fill histogram if there was only one spacepoint at TOF1
         _cut9: Fill histogram if there was only one track in TKU
         
-        _cut10: Fill histogram if _cut1 && _cut2 && _cut3 && _cut4
-        _cut11: Fill histogram if _cut10 && _cut7 && _cut8
-        _cut12: Fill histogram if _cut11 && _cut6 && _cut9
-        _cut13: Fill if _cut12 && Pvalue of track > 0.01
-        _cut14: Fill if all cuts are passed
+        _cut10: Fill histogram if particle mass is OK
+        _cut11: Fill histogram if Pvalue is OK
         
-        _cut16: Fill if _cut6, _cut7, _cut8, _cut9 true
-        _cut17: Fill if Pvalue of track > 0.01
+        _cut12: Fill if all cuts are passed
         
         """
     
@@ -107,6 +103,12 @@ def plot_pass_fail_cut(tree, cut_number):
     tku_xpx_fail = TH2F('tku_xpx_fail', 'TKU xPx fail; x (mm); px (MeV/c)', 100, -200.0, 200.0, 50, -100.0, 100.0)
     tku_ypy_fail = TH2F('tku_ypy_fail', 'TKU yPy fail; y (mm); py (MeV/c)', 100, -200.0, 200.0, 50, -100.0, 100.0)
     
+    tku_pvalue_pass = TH1F('tku_pvalue_pass', 'TKU Pvalue pass;P-value', 100, 0.0, 1.0)
+    tku_pvalue_fail = TH1F('tku_pvalue_fail', 'TKU Pvalue fail;P-value', 100, 0.0, 1.0)
+    
+    tku_mass_pass = TH1F('tku_mass_pass', 'TKU mass pass; particle mass (MeV)', 50, 0.0, 200.0)
+    tku_mass_fail = TH1F('tku_mass_fail', 'TKU mass fail; particle mass (MeV)', 50, 0.0, 200.0)
+    
     
     for entry in tree:
         passes = False
@@ -139,34 +141,21 @@ def plot_pass_fail_cut(tree, cut_number):
         if cut_number == 9:
             if entry.cut_TKU_singleTrack == 1:
                 passes = True
+    
+    #_cut10: Fill histogram if particle mass is OK
+    #    _cut11: Fill histogram if Pvalue is OK
+        
+        #    _cut12: Fill if all cuts are passed
+        
         if cut_number == 10:
-            if entry.cut_TOF0_goodPMTPosition == 1 and entry.cut_TOF1_goodPMTPosition == 1 and entry.cut_goodRaynerReconstruction == 1 and entry.cut_TimeOfFlight == 1:
+            if entry.cut_muon_mass == 1:
                 passes = True
         if cut_number == 11:
-            if entry.cut_TOF0_goodPMTPosition == 1 and entry.cut_TOF1_goodPMTPosition == 1 and entry.cut_goodRaynerReconstruction == 1 and entry.cut_TimeOfFlight == 1 and entry.cut_TOF0_singleHit == 1 and entry.cut_TOF1_singleHit == 1:
-                passes = True
-        if cut_number == 12:
-            if entry.cut_TOF0_goodPMTPosition == 1 and entry.cut_TOF1_goodPMTPosition == 1 and entry.cut_goodRaynerReconstruction == 1 and entry.cut_TimeOfFlight == 1 and entry.cut_TOF0_singleHit == 1 and entry.cut_TOF1_singleHit == 1 and entry.cut_hit_all_detectors == 1 and entry.cut_TKU_singleTrack == 1:
-                passes = True
-        if cut_number == 13:
-            if entry.cut_TOF0_goodPMTPosition == 1 and entry.cut_TOF1_goodPMTPosition == 1 and entry.cut_goodRaynerReconstruction == 1 and entry.cut_TimeOfFlight == 1 and entry.cut_TOF0_singleHit == 1 and entry.cut_TOF1_singleHit == 1 and entry.cut_hit_all_detectors == 1 and entry.cut_TKU_singleTrack == 1 and entry.cut_TKU_PValue == 1:
-                passes = True
-        if cut_number == 14:
-            if entry.cut_allPassed == 1:
-                passes = True
-        if cut_number == 15:
-            if entry.cut_allPassed == 1 and entry.cut_tof1_tku_momentum == 1:
-                passes = True
-    
-        if cut_number == 16:
-            #_cut16: Fill if _cut6, _cut7, _cut8, _cut9 true
-            #_cut17: Fill if Pvalue of track > 0.01
-            if entry.cut_TOF0_singleHit == 1 and entry.cut_TOF1_singleHit == 1 and entry.cut_TKU_singleTrack == 1 and entry.cut_hit_all_detectors == 1:
-                passes = True
-        if cut_number == 17:
             if entry.cut_TKU_PValue == 1:
                 passes = True
-                        
+        if cut_number == 12:
+            if entry.cut_allPassed == 1:
+                passes = True
 
     
     
@@ -200,6 +189,9 @@ def plot_pass_fail_cut(tree, cut_number):
             
             tku_xpx_pass.Fill(entry.TKU_s1_x, entry.TKU_s1_px)
             tku_ypy_pass.Fill(entry.TKU_s1_y, entry.TKU_s1_py)
+
+            tku_pvalue_pass.Fill(entry.TKU_PValue)
+            tku_mass_pass.Fill(entry.TKU_mass)
         else:
             # fill fail histograms
             tof0_x_fail.Fill(entry.TOF0_x)
@@ -230,6 +222,9 @@ def plot_pass_fail_cut(tree, cut_number):
             
             tku_xpx_fail.Fill(entry.TKU_s1_x, entry.TKU_s1_px)
             tku_ypy_fail.Fill(entry.TKU_s1_y, entry.TKU_s1_py)
+                
+            tku_pvalue_fail.Fill(entry.TKU_PValue)
+            tku_mass_fail.Fill(entry.TKU_mass)
 
     canvas = TCanvas('c', 'c')
     saveAs = 'cut_'+str(cut_number)+'_'
@@ -392,9 +387,19 @@ def plot_pass_fail_cut(tree, cut_number):
     tku_ypy_pass.Draw('colz')
     canvas.cd(2)
     tku_ypy_fail.Draw('colz')
+    canvas.Print(saveAs+'TKU.pdf(')
+
+    canvas.cd(1)
+    tku_pvalue_pass.Draw('hist')
+    canvas.cd(2)
+    tku_pvalue_fail.Draw('hist')
+    canvas.Print(saveAs+'TKU.pdf(')
+
+    canvas.cd(1)
+    tku_mass_pass.Draw('hist')
+    canvas.cd(2)
+    tku_mass_fail.Draw('hist')
     canvas.Print(saveAs+'TKU.pdf)')
-
-
 
 
 
