@@ -6,14 +6,20 @@ from ROOT import TFile, TCanvas, gDirectory, TTree, TH1F, TH2F, TMath, TF1
 
 
 def main():
-    filename = "../../MICE Data/MC run 7469/mc_3mm200_07469_4_extracted_data_a.root"
+    #filename = "../../MICE Data/Data run 7469/run7469_extracted_data__MAUS2pt3pt1_a.root"
+    filename = "../../MICE Data/MC run 7469/mc_3mm200_07469_MAUS2pt3pt1_extracted_data_a.root"
     
     f = TFile(filename, 'read')
     tree = f.Get("T")
     
-    for i in range(0, 16):
+    cut_numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    
+    for i in cut_numbers:
         print 'Processing cut ', i
         plot_pass_fail_cut(tree, i)
+
+#plot_pass_fail_cut(tree, 16)
+#    plot_pass_fail_cut(tree, 17)
 
 
 
@@ -35,6 +41,9 @@ def plot_pass_fail_cut(tree, cut_number):
         _cut12: Fill histogram if _cut11 && _cut6 && _cut9
         _cut13: Fill if _cut12 && Pvalue of track > 0.01
         _cut14: Fill if all cuts are passed
+        
+        _cut16: Fill if _cut6, _cut7, _cut8, _cut9 true
+        _cut17: Fill if Pvalue of track > 0.01
         
         """
     
@@ -149,6 +158,18 @@ def plot_pass_fail_cut(tree, cut_number):
             if entry.cut_allPassed == 1 and entry.cut_tof1_tku_momentum == 1:
                 passes = True
     
+        if cut_number == 16:
+            #_cut16: Fill if _cut6, _cut7, _cut8, _cut9 true
+            #_cut17: Fill if Pvalue of track > 0.01
+            if entry.cut_TOF0_singleHit == 1 and entry.cut_TOF1_singleHit == 1 and entry.cut_TKU_singleTrack == 1 and entry.cut_hit_all_detectors == 1:
+                passes = True
+        if cut_number == 17:
+            if entry.cut_TKU_PValue == 1:
+                passes = True
+                        
+
+    
+    
         if passes == True:
             # fill pass histograms
             tof0_x_pass.Fill(entry.TOF0_x)
@@ -210,7 +231,7 @@ def plot_pass_fail_cut(tree, cut_number):
             tku_xpx_fail.Fill(entry.TKU_s1_x, entry.TKU_s1_px)
             tku_ypy_fail.Fill(entry.TKU_s1_y, entry.TKU_s1_py)
 
-canvas = TCanvas('c', 'c')
+    canvas = TCanvas('c', 'c')
     saveAs = 'cut_'+str(cut_number)+'_'
     
     canvas.Divide(2, 1)
