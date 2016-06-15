@@ -24,8 +24,9 @@ void BetterReadMAUS::reset_particle_variables(){
     goodRaynerReconstruction = 0;
     goodTimeOfFlight = 0;
     all_detectors_hit = 0;
-    good_Wilbur_cut = 0;
-    good_tof_tracker_momentum = 0;
+    good_mass_cut = 0;
+
+    particle_mass = TMath::Infinity();
 }
 
 void BetterReadMAUS::reset_TOF0_variables(){
@@ -158,11 +159,7 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane4_pull = TMath::Infinity();
     TKU_plane5_pull = TMath::Infinity();
 
-    TKU_goodPlane1 = 0;
-    TKU_goodPlane2 = 0;
-    TKU_goodPlane3 = 0;
-    TKU_goodPlane4 = 0;
-    TKU_goodPlane5 = 0;
+    TKU_station_hits = 0;
     TKU_goodParticle = 0;
     only_track_in_TKU = 0;
     goodPValue = 0;
@@ -517,6 +514,8 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_pattRec_x0", &TKU_patternRecognition_x0, "TKU_pattRec_x0/D");
     outputTree->Branch("TKU_pattRec_y0", &TKU_patternRecognition_y0, "TKU_pattRec_y0/D");
     outputTree->Branch("TKU_good", &TKU_goodParticle, "TKU_good/I");
+    outputTree->Branch("TKU_mass", &particle_mass, "TKU_mass/D");
+    outputTree->Branch("TKU_station_hits", &TKU_station_hits, "TKU_station_hits/I");
 
     /* cuts: these will be 0 or 1 depending on whether the fail (0) or pass (1) the cut
      *
@@ -527,11 +526,6 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("cut_TOF0_goodPMTPosition", &TOF0_goodPMTPosition, "cut_TOF0_goodPMTPosition/I");
     outputTree->Branch("cut_TOF1_goodPMTPosition", &TOF1_goodPMTPosition, "cut_TOF1_goodPMTPosition/I");
     outputTree->Branch("cut_goodRaynerReconstruction", &goodRaynerReconstruction, "cut_goodRaynerReconstruction/I");
-    outputTree->Branch("cut_TKU_hitStation1", &TKU_goodPlane1, "cut_TKU_hitStation1/I");
-    outputTree->Branch("cut_TKU_hitStation2", &TKU_goodPlane2, "cut_TKU_hitStation2/I");
-    outputTree->Branch("cut_TKU_hitStation3", &TKU_goodPlane3, "cut_TKU_hitStation3/I");
-    outputTree->Branch("cut_TKU_hitStation4", &TKU_goodPlane4, "cut_TKU_hitStation4/I");
-    outputTree->Branch("cut_TKU_hitStation5", &TKU_goodPlane5, "cut_TKU_hitStation5/I");
     outputTree->Branch("cut_TKU_hitAllStations", &TKU_goodParticle, "cut_TKU_hitAllStations/I");
     outputTree->Branch("cut_TimeOfFlight", &goodTimeOfFlight, "cut_TimeOfFlight/I");
     outputTree->Branch("cut_hit_all_detectors", &all_detectors_hit, "cut_hit_all_detectors/I");
@@ -539,8 +533,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("cut_TOF1_singleHit", &only_hit_at_TOF1, "cut_TOF1_singleHit/I");
     outputTree->Branch("cut_TKU_singleTrack", &only_track_in_TKU, "cut_TKU_singleTrack/I");
     outputTree->Branch("cut_TKU_PValue", &goodPValue, "cut_TKU_PValue/I");
-    outputTree->Branch("cut_TOF_TKU_momentum", &good_Wilbur_cut, "cut_TOF_TKU_momentum/I");
-    outputTree->Branch("cut_tof1_tku_momentum", &good_tof_tracker_momentum, "cut_tof1_tku_momentum/I");
+    outputTree->Branch("cut_muon_mass", &good_mass_cut, "cut_muon_mass/I");
     
     // remember to update the selection for goodParticle if more cuts are added above
     outputTree->Branch("cut_allPassed", &goodParticle, "cut_allPassed/I");
@@ -607,6 +600,7 @@ void BetterReadMAUS::readParticleEvent(){
             particle_at_tracker(); // get tracker info
         }
 
+        calculate_particle_mass();
 
         if(TOF0_goodPMTPosition == 1 && TOF1_goodPMTPosition == 1){
             // reconstruct momentum at TOFs
@@ -620,20 +614,12 @@ void BetterReadMAUS::readParticleEvent(){
         else{
             all_detectors_hit = 0;
         }
-        
-        if(particle_within_tof1_tku_momentum_selection()){
-            good_tof_tracker_momentum = 1;
+
+        if(particle_in_mass_range()){
+            good_mass_cut = 1;
         }
         else{
-            good_tof_tracker_momentum = 0;
-        }
-        
-        
-        if(particle_within_Wilbur_cut()){
-            good_Wilbur_cut = 1;
-        }
-        else{
-            good_Wilbur_cut = 0;
+            good_mass_cut = 0;
         }
 
         /*
@@ -644,13 +630,12 @@ void BetterReadMAUS::readParticleEvent(){
          *      -- only_hit_at_TOF1 = 1
          *      -- only_track_in_TKU = 1
          *      -- goodPValue = 1
-         *      -- good_Wilbur_cut = 1 (previously used goodTimeOfFlight=1, which still
-         *   exists, but this should be an improvement)
+         *      -- good_mass_cut = 1
          */
-        if(goodRaynerReconstruction ==1 && goodTimeOfFlight == 1//good_tof_tracker_momentum == 1//good_Wilbur_cut == 1
+        if(goodRaynerReconstruction ==1 && goodTimeOfFlight == 1
            && all_detectors_hit == 1    && only_hit_at_TOF0 == 1
            && only_hit_at_TOF1 == 1     && only_track_in_TKU == 1
-           && goodPValue == 1){
+           && goodPValue == 1 && good_mass_cut == 1){
             goodParticle = 1;
         }
         else{
@@ -839,6 +824,8 @@ void BetterReadMAUS::particle_at_tracker(){
             TKU_patternRecognition_dipAngle = pr_track->get_dsdz();  //pr_track->get_phi0();
             TKU_patternRecognition_x0 = pr_track->get_circle_x0();
             TKU_patternRecognition_y0 = pr_track->get_circle_y0();
+
+            TKU_station_hits = pr_track->get_num_points();
         }
     }
 
@@ -887,9 +874,6 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane1_y_error = errors[2];
                     TKU_plane1_py_error = errors[3];
                     TKU_plane1_kappa_error = errors[4];
-        
-
-                    TKU_goodPlane1 = 1;
                 }
                 else if(point->station() == 2){
                     TKU_plane2_x = point->pos().x();
@@ -911,8 +895,6 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane2_y_error = errors[2];
                     TKU_plane2_py_error = errors[3];
                     TKU_plane2_kappa_error = errors[4];
-
-                    TKU_goodPlane2 = 1;
                 }
                 else if(point->station() == 3){
                     TKU_plane3_x = point->pos().x();
@@ -934,8 +916,6 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane3_y_error = errors[2];
                     TKU_plane3_py_error = errors[3];
                     TKU_plane3_kappa_error = errors[4];
-
-                    TKU_goodPlane3 = 1;
                 }
                 else if(point->station() == 4){
                     TKU_plane4_x = point->pos().x();
@@ -957,8 +937,6 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane4_y_error = errors[2];
                     TKU_plane4_py_error = errors[3];
                     TKU_plane4_kappa_error = errors[4];
-
-                    TKU_goodPlane4 = 1;
                 }
                 else{
                     TKU_plane5_x = point->pos().x();
@@ -980,14 +958,11 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane5_y_error = errors[2];
                     TKU_plane5_py_error = errors[3];
                     TKU_plane5_kappa_error = errors[4];
-
-                    TKU_goodPlane5 = 1;
                 }
             }
         }
     }
-    if(TKU_goodPlane1 == 1 && TKU_goodPlane2 == 1 && TKU_goodPlane3 == 1
-            && TKU_goodPlane4 == 1 && TKU_goodPlane5 == 1){
+    if(TKU_station_hits == 5){
         TKU_goodParticle = 1;
     }
     else{
@@ -1000,6 +975,7 @@ void BetterReadMAUS::particle_at_tracker(){
     else{
         goodPValue = 0;
     }
+
 }
 
 
@@ -1083,63 +1059,26 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
 
 
 
+void BetterReadMAUS::calculate_particle_mass(){
+    double p_corr = 18.82;
+    double t_mu = TOF1_hitTime - TOF0_hitTime; // time in ns
+    double t_electron = 25.48;
+    double beta = t_electron/t_mu;
+    double gamma = 1.0/TMath::Sqrt(1.0 - beta*beta);
 
-bool BetterReadMAUS::particle_within_Wilbur_cut(){
-    /*
-     These cuts are based on an email from S. Wilbur on 17/03/16 at 15:46. The final
-     numbers still need checking with T. Mohayai.  When done, this function should be
-     updated.
-     */
-    
-    double e_tof = 25.95;
-    double mu_tof = TOF1_hitTime - TOF0_hitTime;
-    
-    if(mu_tof <= e_tof){
-        return false;
-    }
-    double velocity = e_tof/mu_tof;
-    double mu_mass = 105.658367;
-    
-    double p = mu_mass*velocity/TMath::Sqrt(1.0 - velocity*velocity);
-    
-    double tof_correction = mu_tof - e_tof + 25.95;
-    double p_correction = -1103.98 + 75.7111*tof_correction
-                            - 1.32053*tof_correction*tof_correction;
-    
-    
-    
-    return false; // this needs correcting when I hear back from Scott
+    double p_track = TKU_plane1_p;
+
+    particle_mass = (p_track + p_corr) / (beta * gamma);
+    std::cout << "p_track = " << p_track << ", beta = "  << beta
+              << ", gamma = " << gamma << ", m_calc =  " << particle_mass << "\n";
 }
 
-
-
-bool BetterReadMAUS::particle_within_tof1_tku_momentum_selection(){
-    /*
-     These cuts are based on plotting (tracker P, tof1 P) and selecting
-     a region 0.9*rms around the maxima
-     */
-    
-    double upper_gradient = 0.7698;
-    double upper_intercept = 72.855;
-    
-    double lower_gradient = 0.9082;
-    double lower_intercept = 26.985;
-    
-    double upper, lower;
-    
-    if(TOF1_p == TMath::Infinity() || TKU_plane1_p == TMath::Infinity()){
-        return false;
+bool BetterReadMAUS::particle_in_mass_range(){
+    if(particle_mass >= 90.0 && particle_mass <= 120.0){
+        return true;
     }
     else{
-        upper = upper_gradient*TKU_plane1_p + upper_intercept;
-        lower = lower_gradient*TKU_plane1_p + lower_intercept;
-        if(TOF1_p >= lower && TOF1_p <= upper){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return false;
     }
-    
     return false;
 }
