@@ -1062,13 +1062,15 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
 void BetterReadMAUS::calculate_particle_mass(){
     double p_corr = 18.82;
     double t_mu = TOF1_hitTime - TOF0_hitTime; // time in ns
-    double t_electron = 26.47;
+    double t_electron = 25.48;
     double beta = t_electron/t_mu;
-    double gamma = TMath::Sqrt(1.0 - beta*beta);
+    double gamma = 1.0/TMath::Sqrt(1.0 - beta*beta);
 
     double p_track = TKU_plane1_p;
 
-    particle_mass = (p_track + p_corr) * (beta / gamma);
+    particle_mass = (p_track + p_corr) / (beta * gamma);
+    std::cout << "p_track = " << p_track << ", beta = "  << beta
+              << ", gamma = " << gamma << ", m_calc =  " << particle_mass << "\n";
 }
 
 bool BetterReadMAUS::particle_in_mass_range(){

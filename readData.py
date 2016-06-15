@@ -6,8 +6,8 @@ from ROOT import TFile, TCanvas, gDirectory, TTree, TH1F, TH2F, TMath, TF1
 
 
 def main():
-    #filename = "../../MICE Data/Data run 7469/run7469_extracted_data__MAUS2pt3pt1_a.root"
-    filename = "../../MICE Data/MC run 7469/mc_3mm200_07469_MAUS2pt3pt1_extracted_data_a.root"
+    filename = "../../MICE Data/Data run 7469/run7469_extracted_data__MAUS2pt3pt1_b.root"
+    #filename = "../../MICE Data/MC run 7469/mc_3mm200_07469_MAUS2pt3pt1_extracted_data_a.root"
     
     f = TFile(filename, 'read')
     tree = f.Get("T")
