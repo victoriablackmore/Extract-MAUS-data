@@ -533,7 +533,8 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("cut_TOF1_singleHit", &only_hit_at_TOF1, "cut_TOF1_singleHit/I");
     outputTree->Branch("cut_TKU_singleTrack", &only_track_in_TKU, "cut_TKU_singleTrack/I");
     outputTree->Branch("cut_TKU_PValue", &goodPValue, "cut_TKU_PValue/I");
-    outputTree->Branch("cut_muon_mass", &good_mass_cut, "cut_muon_mass/I");
+    //outputTree->Branch("cut_muon_mass", &good_mass_cut, "cut_muon_mass/I");
+    outputTree->Branch("cut_momentum_loss", &good_momentum_loss_cut, "cut_momentum_loss/I");
     
     // remember to update the selection for goodParticle if more cuts are added above
     outputTree->Branch("cut_allPassed", &goodParticle, "cut_allPassed/I");
@@ -601,6 +602,7 @@ void BetterReadMAUS::readParticleEvent(){
         }
 
         calculate_particle_mass();
+        good_momentum_loss_cut = check_momentum_loss();
 
         if(TOF0_goodPMTPosition == 1 && TOF1_goodPMTPosition == 1){
             // reconstruct momentum at TOFs
@@ -635,7 +637,7 @@ void BetterReadMAUS::readParticleEvent(){
         if(goodRaynerReconstruction ==1 && goodTimeOfFlight == 1
            && all_detectors_hit == 1    && only_hit_at_TOF0 == 1
            && only_hit_at_TOF1 == 1     && only_track_in_TKU == 1
-           && goodPValue == 1 && good_mass_cut == 1){
+           && goodPValue == 1 && good_momentum_loss_cut == 1){
             goodParticle = 1;
         }
         else{
@@ -1081,4 +1083,32 @@ bool BetterReadMAUS::particle_in_mass_range(){
         return false;
     }
     return false;
+}
+
+
+
+
+bool BetterReadMAUS::check_momentum_loss(){
+    double m = 105.6583715;
+    momentum_loss_cut_lower_limit = 5.0;
+    momentum_loss_cut_upper_limit = 43.4;//35.0;
+
+    bool passes = false;
+
+
+    double tof = TOF1_hitTime - TOF0_hitTime;
+
+    double beta_tof = 25.48/tof;
+    double gamma_tof = 1.0/TMath::Sqrt(1.0 - beta_tof*beta_tof);
+    double beta_gamma_tof = beta_tof*gamma_tof;
+
+    double min_cut = (TKU_plane1_p + momentum_loss_cut_lower_limit) / m;
+    double max_cut = (TKU_plane1_p + momentum_loss_cut_upper_limit) / m;
+
+
+    if(beta_gamma_tof >= min_cut && beta_gamma_tof <= max_cut){
+        passes = true;
+    }
+
+    return passes;
 }
