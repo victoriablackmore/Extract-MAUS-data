@@ -6,7 +6,7 @@ from ROOT import TFile, TCanvas, gDirectory, TTree, TH1F, TH2F, TMath, TF1
 
 
 def main():
-    filename = "../../MICE Data/Data run 7469/run7469_extracted_data__MAUS2pt3pt1_b.root"
+    filename = "../../MICE Data/Data run 7469/run7469_extracted_data__MAUS2pt5_b.root"
     #filename = "../../MICE Data/MC run 7469/mc_3mm200_07469_MAUS2pt3pt1_extracted_data_a.root"
     
     f = TFile(filename, 'read')
@@ -36,7 +36,7 @@ def plot_pass_fail_cut(tree, cut_number):
         _cut8: Fill histogram if there was only one spacepoint at TOF1
         _cut9: Fill histogram if there was only one track in TKU
         
-        _cut10: Fill histogram if particle mass is OK
+        _cut10: Fill histogram if particle momentum loss is OK
         _cut11: Fill histogram if Pvalue is OK
         
         _cut12: Fill if all cuts are passed
@@ -148,7 +148,7 @@ def plot_pass_fail_cut(tree, cut_number):
         #    _cut12: Fill if all cuts are passed
         
         if cut_number == 10:
-            if entry.cut_muon_mass == 1:
+            if entry.cut_momentum_loss == 1:
                 passes = True
         if cut_number == 11:
             if entry.cut_TKU_PValue == 1:

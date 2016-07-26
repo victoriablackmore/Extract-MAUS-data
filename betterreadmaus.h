@@ -122,6 +122,13 @@ private:
     double particle_mass;
     int good_mass_cut;
 
+
+
+    double momentum_loss_cut_lower_limit, momentum_loss_cut_upper_limit;
+    int good_momentum_loss_cut;
+    bool check_momentum_loss();
+
+
     QVector<double> TOF0_horizontal_calibration;
     QVector<double> TOF0_vertical_calibration;
     QVector<double> TOF1_horizontal_calibration;
