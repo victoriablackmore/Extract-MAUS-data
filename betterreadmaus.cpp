@@ -1074,7 +1074,7 @@ void BetterReadMAUS::calculate_particle_mass(){
 }
 
 bool BetterReadMAUS::particle_in_mass_range(){
-    if(particle_mass >= 90.0 && particle_mass <= 120.0){
+    if(particle_mass >= 99.0 && particle_mass <= 112.0){
         return true;
     }
     else{
