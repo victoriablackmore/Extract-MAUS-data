@@ -20,8 +20,21 @@ void MainWindow::setup_ui(){
     connect(ui->btn_go, SIGNAL(clicked()), SLOT(getData()));
     connect(ui->btn_CDB_summary, SIGNAL(clicked()), SLOT(choose_CDB_file()));
     connect(ui->btn_diffuser_tracking, SIGNAL(clicked()), SLOT(choose_diffuser_file()));
+    connect(ui->btn_isData, SIGNAL(clicked()), SLOT(update_TOF()));
+    connect(ui->btn_isMC, SIGNAL(clicked()), SLOT(update_TOF()));
+
     //read_data = new ReadMAUS();
     better_read_data = new BetterReadMAUS();
+}
+
+void MainWindow::update_TOF(){
+    if(ui->btn_isData->isChecked()){
+        // reset to data value
+        ui->dbl_eTOF->setValue(25.48);
+    }
+    else{
+        ui->dbl_eTOF->setValue(25.68);
+    }
 }
 
 
@@ -93,15 +106,14 @@ void MainWindow::choose_diffuser_file(){
 }
 
 void MainWindow::getData(){
-    double min_tof = 27.0;
-    double max_tof = 40.0;
-    double sim_ele_path = 11.0;
+    double min_tof = ui->dbl_minTOF->value();
+    double max_tof = ui->dbl_maxTOF->value();
+    double sim_ele_path = ui->dbl_ePathLength->value();
 
     QString calibrationFileName;
     QString rogersTrackingFileName;
-    double data_ele_tof;
+    double data_ele_tof = ui->dbl_eTOF->value();
     if(ui->btn_isData->isChecked()){
-        data_ele_tof = 25.48; // 25.48ns for data, 25.68ns for reconstructed MC
         calibrationFileName = "run7417_calibration_file_DATA.dat";
 
         if(ui->line_diffuser_tracking->text().isEmpty()){
@@ -112,7 +124,6 @@ void MainWindow::getData(){
         }
     }
     else{
-        data_ele_tof = 25.68; // 25.48ns for data, 25.68ns for reconstructed MC
         calibrationFileName = "run7417_calibration_file_MC.dat";
 
         if(ui->line_diffuser_tracking->text().isEmpty()){
@@ -129,14 +140,13 @@ void MainWindow::getData(){
     double q7_current = magnet_currents.at(0);
     double q8_current = magnet_currents.at(1);
     double q9_current = magnet_currents.at(2);
-    //double q7_current = 138.70;
-    //double q8_current = 209.80;
-    //double q9_current = 179.20;
-    double q7_zPosition = 9499.00;
-    double q8_zPosition = 10659.00;
-    double q9_zPosition = 11819.00;
-    double tof0_zPosition = 5287.66;
-    double tof1_zPosition = 12896.60;
+
+    QVector<double> magnet_and_TOF_positions = read_CDB_positions();
+    double q7_zPosition = magnet_and_TOF_positions.at(0);
+    double q8_zPosition = magnet_and_TOF_positions.at(1);
+    double q9_zPosition = magnet_and_TOF_positions.at(2);
+    double tof0_zPosition = magnet_and_TOF_positions.at(3);
+    double tof1_zPosition = magnet_and_TOF_positions.at(4);
 
     std::cout << "Using Q7 = " << q7_current << ", Q8 = " << q8_current << ", Q9 = " << q9_current << "\n";
 
@@ -186,6 +196,88 @@ QVector<double> MainWindow::read_CDB_currents(){
 
     QVector<double> magnet_currents;
     magnet_currents << q7 << q8 << q9;
+
+    return magnet_currents;
+}
+
+QVector<double> MainWindow::read_CDB_positions(){
+    QString CDB_file;
+    if(ui->line_CDB_summary->text().isEmpty()){
+        CDB_file = "run7469_parent_geometry_file.txt";
+    }
+    else{
+        CDB_file = ui->line_CDB_summary->text();
+    }
+
+
+    QFile file(CDB_file);
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        std::cerr << "Failed to read tracking file.\n";
+        QVector<double> fail(3, 0.0);
+        return fail;
+    }
+
+    QTextStream in(&file);
+    double z_q7, z_q8, z_q9, z_TOF0, z_TOF1;
+    while(!in.atEnd()){
+        QString line = in.readLine();
+
+        if(line.contains("TOF0.dat")){
+            line = in.readLine();
+            line = in.readLine();
+            if(line.contains("Position")){
+                QStringList list = line.split(" ", QString::SkipEmptyParts);
+                z_TOF0 = list.at(3).toDouble();
+                std::cout << "TOF0 is at " << z_TOF0 << "\n";
+            }
+        }
+
+        if(line.contains("TOF1.dat")){
+            line = in.readLine();
+            line = in.readLine();
+            if(line.contains("Position")){
+                QStringList list = line.split(" ", QString::SkipEmptyParts);
+                z_TOF1 = list.at(3).toDouble();
+                std::cout << "TOF1 is at " << z_TOF1 << "\n";
+            }
+        }
+
+        if(line.contains("Module Q7")){
+            line = in.readLine();
+            line = in.readLine();
+            line = in.readLine();
+            if(line.contains("Position")){
+                QStringList list = line.split(" ", QString::SkipEmptyParts);
+                z_q7 = list.at(3).toDouble();
+                std::cout << "Q7 is at " << z_q7 << "\n";
+            }
+        }
+
+        if(line.contains("Module Q8")){
+            line = in.readLine();
+            line = in.readLine();
+            line = in.readLine();
+            if(line.contains("Position")){
+                QStringList list = line.split(" ", QString::SkipEmptyParts);
+                z_q8 = list.at(3).toDouble();
+                std::cout << "Q8 is at " << z_q8 << "\n";
+            }
+        }
+
+        if(line.contains("Module Q9")){
+            line = in.readLine();
+            line = in.readLine();
+            line = in.readLine();
+            if(line.contains("Position")){
+                QStringList list = line.split(" ", QString::SkipEmptyParts);
+                z_q9 = list.at(3).toDouble();
+                std::cout << "Q9 is at " << z_q9 << "\n";
+            }
+        }
+    }
+
+    QVector<double> magnet_currents;
+    magnet_currents << z_q7 << z_q8 << z_q9 << z_TOF0 << z_TOF1;
 
     return magnet_currents;
 }

@@ -31,6 +31,7 @@ public slots:
     void choose_CDB_file();
     void choose_diffuser_file();
     void getData();
+    void update_TOF();
 
 private:
     Ui::MainWindow *ui;
@@ -39,6 +40,7 @@ private:
 
     void setup_ui();
     QVector<double> read_CDB_currents();
+    QVector<double> read_CDB_positions();
 
     QString inputFilename;
     QString outputFilename;

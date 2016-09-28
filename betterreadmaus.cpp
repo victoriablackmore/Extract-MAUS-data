@@ -619,11 +619,6 @@ void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString cali
 
             readParticleEvent();
         }
-
-
-        //if(spill_number == 100){
-        //    break;
-        //}
     }
 
     outputFile->cd();
