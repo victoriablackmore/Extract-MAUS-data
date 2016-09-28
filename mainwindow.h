@@ -10,6 +10,7 @@
 #include <QHashIterator>
 #include <TMath.h>
 #include <TMatrixD.h>
+#include <QVector>
 
 
 namespace Ui {
@@ -27,6 +28,8 @@ public:
 public slots:
     void choose_open_file();
     void choose_save_file();
+    void choose_CDB_file();
+    void choose_diffuser_file();
     void getData();
 
 private:
@@ -35,6 +38,7 @@ private:
     BetterReadMAUS* better_read_data;
 
     void setup_ui();
+    QVector<double> read_CDB_currents();
 
     QString inputFilename;
     QString outputFilename;
