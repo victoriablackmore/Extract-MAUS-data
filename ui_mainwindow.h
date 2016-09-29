@@ -337,11 +337,11 @@ public:
 #endif // QT_NO_TOOLTIP
         btn_CDB_summary->setText(QApplication::translate("MainWindow", "...", 0));
 #ifndef QT_NO_TOOLTIP
-        label_4->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, a default tracking file will be used derived from run 7469</p></body></html>", 0));
+        label_4->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.</p></body></html>", 0));
 #endif // QT_NO_TOOLTIP
         label_4->setText(QApplication::translate("MainWindow", "Diffuser tracking file:", 0));
 #ifndef QT_NO_TOOLTIP
-        line_diffuser_tracking->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, a default tracking file will be used derived from run 7469</p></body></html>", 0));
+        line_diffuser_tracking->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.</p></body></html>", 0));
 #endif // QT_NO_TOOLTIP
         btn_diffuser_tracking->setText(QApplication::translate("MainWindow", "...", 0));
         btn_go->setText(QApplication::translate("MainWindow", "Read MAUS file and save as .dat", 0));

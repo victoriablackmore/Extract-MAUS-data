@@ -530,35 +530,36 @@ void BetterReadMAUS::define_root_file(QString saveAs){
 
 
     // Rogers' particle tracking
-    outputTree->Branch("rogers_tracking_tof01", &rogers_tof01, "rogers_tracking_tof01/D");
-    outputTree->Branch("rogers_tracking_x_tof1", &rogers_x_tof1, "rogers_tracking_x_tof1/D");
-    outputTree->Branch("rogers_tracking_y_tof1", &rogers_y_tof1, "rogers_tracking_y_tof1/D");
-    outputTree->Branch("rogers_tracking_px_tof1", &rogers_px_tof1, "rogers_tracking_px_tof1/D");
-    outputTree->Branch("rogers_tracking_py_tof1", &rogers_py_tof1, "rogers_tracking_py_tof1/D");
-    outputTree->Branch("rogers_tracking_pz_tof1", &rogers_pz_tof1, "rogers_tracking_pz_tof1/D");
+    if(!rogersTrackingFileName.isEmpty()){
+        outputTree->Branch("rogers_tracking_tof01", &rogers_tof01, "rogers_tracking_tof01/D");
+        outputTree->Branch("rogers_tracking_x_tof1", &rogers_x_tof1, "rogers_tracking_x_tof1/D");
+        outputTree->Branch("rogers_tracking_y_tof1", &rogers_y_tof1, "rogers_tracking_y_tof1/D");
+        outputTree->Branch("rogers_tracking_px_tof1", &rogers_px_tof1, "rogers_tracking_px_tof1/D");
+        outputTree->Branch("rogers_tracking_py_tof1", &rogers_py_tof1, "rogers_tracking_py_tof1/D");
+        outputTree->Branch("rogers_tracking_pz_tof1", &rogers_pz_tof1, "rogers_tracking_pz_tof1/D");
 
-    outputTree->Branch("rogers_tracking_x_diffuser1", &rogers_x_diffuser1, "rogers_tracking_x_diffuser1/D");
-    outputTree->Branch("rogers_tracking_y_diffuser1", &rogers_y_diffuser1, "rogers_tracking_y_diffuser1/D");
-    outputTree->Branch("rogers_tracking_z_diffuser1", &rogers_z_diffuser1, "rogers_tracking_z_diffuser1/D");
-    outputTree->Branch("rogers_tracking_px_diffuser1", &rogers_px_diffuser1, "rogers_tracking_px_diffuser1/D");
-    outputTree->Branch("rogers_tracking_py_diffuser1", &rogers_py_diffuser1, "rogers_tracking_py_diffuser1/D");
-    outputTree->Branch("rogers_tracking_pz_diffuser1", &rogers_pz_diffuser1, "rogers_tracking_pz_diffuser1/D");
+        outputTree->Branch("rogers_tracking_x_diffuser1", &rogers_x_diffuser1, "rogers_tracking_x_diffuser1/D");
+        outputTree->Branch("rogers_tracking_y_diffuser1", &rogers_y_diffuser1, "rogers_tracking_y_diffuser1/D");
+        outputTree->Branch("rogers_tracking_z_diffuser1", &rogers_z_diffuser1, "rogers_tracking_z_diffuser1/D");
+        outputTree->Branch("rogers_tracking_px_diffuser1", &rogers_px_diffuser1, "rogers_tracking_px_diffuser1/D");
+        outputTree->Branch("rogers_tracking_py_diffuser1", &rogers_py_diffuser1, "rogers_tracking_py_diffuser1/D");
+        outputTree->Branch("rogers_tracking_pz_diffuser1", &rogers_pz_diffuser1, "rogers_tracking_pz_diffuser1/D");
 
-    outputTree->Branch("rogers_tracking_x_diffuser2", &rogers_x_diffuser2, "rogers_tracking_x_diffuser2/D");
-    outputTree->Branch("rogers_tracking_y_diffuser2", &rogers_y_diffuser2, "rogers_tracking_y_diffuser2/D");
-    outputTree->Branch("rogers_tracking_z_diffuser2", &rogers_z_diffuser2, "rogers_tracking_z_diffuser2/D");
-    outputTree->Branch("rogers_tracking_px_diffuser2", &rogers_px_diffuser2, "rogers_tracking_px_diffuser2/D");
-    outputTree->Branch("rogers_tracking_py_diffuser2", &rogers_py_diffuser2, "rogers_tracking_py_diffuser2/D");
-    outputTree->Branch("rogers_tracking_pz_diffuser2", &rogers_pz_diffuser2, "rogers_tracking_pz_diffuser2/D");
+        outputTree->Branch("rogers_tracking_x_diffuser2", &rogers_x_diffuser2, "rogers_tracking_x_diffuser2/D");
+        outputTree->Branch("rogers_tracking_y_diffuser2", &rogers_y_diffuser2, "rogers_tracking_y_diffuser2/D");
+        outputTree->Branch("rogers_tracking_z_diffuser2", &rogers_z_diffuser2, "rogers_tracking_z_diffuser2/D");
+        outputTree->Branch("rogers_tracking_px_diffuser2", &rogers_px_diffuser2, "rogers_tracking_px_diffuser2/D");
+        outputTree->Branch("rogers_tracking_py_diffuser2", &rogers_py_diffuser2, "rogers_tracking_py_diffuser2/D");
+        outputTree->Branch("rogers_tracking_pz_diffuser2", &rogers_pz_diffuser2, "rogers_tracking_pz_diffuser2/D");
 
 
-    outputTree->Branch("rogers_tracking_x_diffuser3", &rogers_x_diffuser3, "rogers_tracking_x_diffuser3/D");
-    outputTree->Branch("rogers_tracking_y_diffuser3", &rogers_y_diffuser3, "rogers_tracking_y_diffuser3/D");
-    outputTree->Branch("rogers_tracking_z_diffuser3", &rogers_z_diffuser3, "rogers_tracking_z_diffuser3/D");
-    outputTree->Branch("rogers_tracking_px_diffuser3", &rogers_px_diffuser3, "rogers_tracking_px_diffuser3/D");
-    outputTree->Branch("rogers_tracking_py_diffuser3", &rogers_py_diffuser3, "rogers_tracking_py_diffuser3/D");
-    outputTree->Branch("rogers_tracking_pz_diffuser3", &rogers_pz_diffuser3, "rogers_tracking_pz_diffuser3/D");
-
+        outputTree->Branch("rogers_tracking_x_diffuser3", &rogers_x_diffuser3, "rogers_tracking_x_diffuser3/D");
+        outputTree->Branch("rogers_tracking_y_diffuser3", &rogers_y_diffuser3, "rogers_tracking_y_diffuser3/D");
+        outputTree->Branch("rogers_tracking_z_diffuser3", &rogers_z_diffuser3, "rogers_tracking_z_diffuser3/D");
+        outputTree->Branch("rogers_tracking_px_diffuser3", &rogers_px_diffuser3, "rogers_tracking_px_diffuser3/D");
+        outputTree->Branch("rogers_tracking_py_diffuser3", &rogers_py_diffuser3, "rogers_tracking_py_diffuser3/D");
+        outputTree->Branch("rogers_tracking_pz_diffuser3", &rogers_pz_diffuser3, "rogers_tracking_pz_diffuser3/D");
+    }
 
     /* cuts: these will be 0 or 1 depending on whether the fail (0) or pass (1) the cut
      *
@@ -579,8 +580,9 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     //outputTree->Branch("cut_muon_mass", &good_mass_cut, "cut_muon_mass/I");
     outputTree->Branch("cut_momentum_loss", &good_momentum_loss_cut, "cut_momentum_loss/I");
 
-
-    outputTree->Branch("cut_diffuser", &cut_diffuser, "cut_diffuser/I");
+    if(!rogersTrackingFileName.isEmpty()){
+        outputTree->Branch("cut_diffuser", &cut_diffuser, "cut_diffuser/I");
+    }
     
     // remember to update the selection for goodParticle if more cuts are added above
     outputTree->Branch("cut_allPassed", &goodParticle, "cut_allPassed/I");
@@ -693,7 +695,7 @@ void BetterReadMAUS::readParticleEvent(){
             goodParticle = 0;
         }
 
-        if(all_detectors_hit == 1)
+        if(all_detectors_hit == 1 && !rogersTrackingFileName.isEmpty())
             ReadRogersExtrapolation(spill_number, reconstructed_event_number);
 
 

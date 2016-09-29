@@ -116,24 +116,24 @@ void MainWindow::getData(){
     if(ui->btn_isData->isChecked()){
         calibrationFileName = "run7417_calibration_file_DATA.dat";
 
-        if(ui->line_diffuser_tracking->text().isEmpty()){
-            rogersTrackingFileName = "tracker-at-tof1_geometry-160_M2-5-0_v2.csv";
-        }
-        else{
+        //if(ui->line_diffuser_tracking->text().isEmpty()){
+        //    rogersTrackingFileName = "tracker-at-tof1_geometry-160_M2-5-0_v2.csv";
+        //}
+        //else{
             rogersTrackingFileName = ui->line_diffuser_tracking->text();
-        }
+        //}
     }
     else{
         calibrationFileName = "run7417_calibration_file_MC.dat";
 
-        if(ui->line_diffuser_tracking->text().isEmpty()){
+        //if(ui->line_diffuser_tracking->text().isEmpty()){
             // update this when we have a default MC file to use
             //rogersTrackingFileName = "tracker-at-tof1_geometry-160_M2-5-0_v2.csv";
-            rogersTrackingFileName = "test_diffuser_tracking.txt";
-        }
-        else{
+        //    rogersTrackingFileName = "test_diffuser_tracking.txt";
+        //}
+        //else{
             rogersTrackingFileName = ui->line_diffuser_tracking->text();
-        }
+        //}
     }
 
     QVector<double> magnet_currents = read_CDB_currents();

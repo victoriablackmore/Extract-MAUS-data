@@ -234,7 +234,7 @@
       <item>
        <widget class="QLabel" name="label_4">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, a default tracking file will be used derived from run 7469&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Diffuser tracking file:</string>
@@ -244,7 +244,7 @@
       <item>
        <widget class="QLineEdit" name="line_diffuser_tracking">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, a default tracking file will be used derived from run 7469&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
