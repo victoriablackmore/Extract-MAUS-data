@@ -109,10 +109,10 @@ void MainWindow::getData(){
     double min_tof = ui->dbl_minTOF->value();
     double max_tof = ui->dbl_maxTOF->value();
     double sim_ele_path = ui->dbl_ePathLength->value();
+    double data_ele_tof = ui->dbl_eTOF->value();
 
     QString calibrationFileName;
     QString rogersTrackingFileName;
-    double data_ele_tof = ui->dbl_eTOF->value();
     if(ui->btn_isData->isChecked()){
         calibrationFileName = "run7417_calibration_file_DATA.dat";
 
@@ -168,7 +168,7 @@ QVector<double> MainWindow::read_CDB_currents(){
 
     QFile file(CDB_file);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        std::cerr << "Failed to read tracking file.\n";
+        std::cerr << "Failed to read geometry file.\n";
         QVector<double> fail(3, 0.0);
         return fail;
     }
@@ -197,6 +197,8 @@ QVector<double> MainWindow::read_CDB_currents(){
     QVector<double> magnet_currents;
     magnet_currents << q7 << q8 << q9;
 
+    file.flush();
+    file.close();
     return magnet_currents;
 }
 
@@ -212,13 +214,16 @@ QVector<double> MainWindow::read_CDB_positions(){
 
     QFile file(CDB_file);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        std::cerr << "Failed to read tracking file.\n";
+        std::cerr << "Failed to read geometry file.\n";
         QVector<double> fail(3, 0.0);
         return fail;
     }
 
     QTextStream in(&file);
     double z_q7, z_q8, z_q9, z_TOF0, z_TOF1;
+    double z_correction = 999.592;  // mm, correct for different starting definitions
+                                    // we need the centre, the geometry gives the
+                                    // start of the field
     while(!in.atEnd()){
         QString line = in.readLine();
 
@@ -248,7 +253,7 @@ QVector<double> MainWindow::read_CDB_positions(){
             line = in.readLine();
             if(line.contains("Position")){
                 QStringList list = line.split(" ", QString::SkipEmptyParts);
-                z_q7 = list.at(3).toDouble();
+                z_q7 = list.at(3).toDouble() + z_correction;
                 std::cout << "Q7 is at " << z_q7 << "\n";
             }
         }
@@ -259,7 +264,7 @@ QVector<double> MainWindow::read_CDB_positions(){
             line = in.readLine();
             if(line.contains("Position")){
                 QStringList list = line.split(" ", QString::SkipEmptyParts);
-                z_q8 = list.at(3).toDouble();
+                z_q8 = list.at(3).toDouble() + z_correction;
                 std::cout << "Q8 is at " << z_q8 << "\n";
             }
         }
@@ -270,7 +275,7 @@ QVector<double> MainWindow::read_CDB_positions(){
             line = in.readLine();
             if(line.contains("Position")){
                 QStringList list = line.split(" ", QString::SkipEmptyParts);
-                z_q9 = list.at(3).toDouble();
+                z_q9 = list.at(3).toDouble() + z_correction;
                 std::cout << "Q9 is at " << z_q9 << "\n";
             }
         }
@@ -279,5 +284,7 @@ QVector<double> MainWindow::read_CDB_positions(){
     QVector<double> magnet_currents;
     magnet_currents << z_q7 << z_q8 << z_q9 << z_TOF0 << z_TOF1;
 
+    file.flush();
+    file.close();
     return magnet_currents;
 }
