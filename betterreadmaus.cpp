@@ -16,6 +16,7 @@ void BetterReadMAUS::reset_particle_variables(){
     reset_TOF0_variables();
     reset_TOF1_variables();
     reset_TKU_variables();
+    reset_rogers_tracking();
 
     reconstructed_event_number = -1;
     spill_number = -1;
@@ -162,6 +163,8 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_station_hits = 0;
     TKU_goodParticle = 0;
     only_track_in_TKU = 0;
+    TKU_charge = -5;
+    TKU_assumed_field = TMath::Infinity();
     goodPValue = 0;
 }
 
@@ -516,6 +519,47 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_good", &TKU_goodParticle, "TKU_good/I");
     outputTree->Branch("TKU_mass", &particle_mass, "TKU_mass/D");
     outputTree->Branch("TKU_station_hits", &TKU_station_hits, "TKU_station_hits/I");
+    outputTree->Branch("TKU_charge", &TKU_charge, "TKU_charge/I");
+
+
+
+
+
+
+
+
+
+    // Rogers' particle tracking
+    if(!rogersTrackingFileName.isEmpty()){
+        outputTree->Branch("rogers_tracking_tof01", &rogers_tof01, "rogers_tracking_tof01/D");
+        outputTree->Branch("rogers_tracking_x_tof1", &rogers_x_tof1, "rogers_tracking_x_tof1/D");
+        outputTree->Branch("rogers_tracking_y_tof1", &rogers_y_tof1, "rogers_tracking_y_tof1/D");
+        outputTree->Branch("rogers_tracking_px_tof1", &rogers_px_tof1, "rogers_tracking_px_tof1/D");
+        outputTree->Branch("rogers_tracking_py_tof1", &rogers_py_tof1, "rogers_tracking_py_tof1/D");
+        outputTree->Branch("rogers_tracking_pz_tof1", &rogers_pz_tof1, "rogers_tracking_pz_tof1/D");
+
+        outputTree->Branch("rogers_tracking_x_diffuser1", &rogers_x_diffuser1, "rogers_tracking_x_diffuser1/D");
+        outputTree->Branch("rogers_tracking_y_diffuser1", &rogers_y_diffuser1, "rogers_tracking_y_diffuser1/D");
+        outputTree->Branch("rogers_tracking_z_diffuser1", &rogers_z_diffuser1, "rogers_tracking_z_diffuser1/D");
+        outputTree->Branch("rogers_tracking_px_diffuser1", &rogers_px_diffuser1, "rogers_tracking_px_diffuser1/D");
+        outputTree->Branch("rogers_tracking_py_diffuser1", &rogers_py_diffuser1, "rogers_tracking_py_diffuser1/D");
+        outputTree->Branch("rogers_tracking_pz_diffuser1", &rogers_pz_diffuser1, "rogers_tracking_pz_diffuser1/D");
+
+        outputTree->Branch("rogers_tracking_x_diffuser2", &rogers_x_diffuser2, "rogers_tracking_x_diffuser2/D");
+        outputTree->Branch("rogers_tracking_y_diffuser2", &rogers_y_diffuser2, "rogers_tracking_y_diffuser2/D");
+        outputTree->Branch("rogers_tracking_z_diffuser2", &rogers_z_diffuser2, "rogers_tracking_z_diffuser2/D");
+        outputTree->Branch("rogers_tracking_px_diffuser2", &rogers_px_diffuser2, "rogers_tracking_px_diffuser2/D");
+        outputTree->Branch("rogers_tracking_py_diffuser2", &rogers_py_diffuser2, "rogers_tracking_py_diffuser2/D");
+        outputTree->Branch("rogers_tracking_pz_diffuser2", &rogers_pz_diffuser2, "rogers_tracking_pz_diffuser2/D");
+
+
+        outputTree->Branch("rogers_tracking_x_diffuser3", &rogers_x_diffuser3, "rogers_tracking_x_diffuser3/D");
+        outputTree->Branch("rogers_tracking_y_diffuser3", &rogers_y_diffuser3, "rogers_tracking_y_diffuser3/D");
+        outputTree->Branch("rogers_tracking_z_diffuser3", &rogers_z_diffuser3, "rogers_tracking_z_diffuser3/D");
+        outputTree->Branch("rogers_tracking_px_diffuser3", &rogers_px_diffuser3, "rogers_tracking_px_diffuser3/D");
+        outputTree->Branch("rogers_tracking_py_diffuser3", &rogers_py_diffuser3, "rogers_tracking_py_diffuser3/D");
+        outputTree->Branch("rogers_tracking_pz_diffuser3", &rogers_pz_diffuser3, "rogers_tracking_pz_diffuser3/D");
+    }
 
     /* cuts: these will be 0 or 1 depending on whether the fail (0) or pass (1) the cut
      *
@@ -535,6 +579,10 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("cut_TKU_PValue", &goodPValue, "cut_TKU_PValue/I");
     //outputTree->Branch("cut_muon_mass", &good_mass_cut, "cut_muon_mass/I");
     outputTree->Branch("cut_momentum_loss", &good_momentum_loss_cut, "cut_momentum_loss/I");
+
+    if(!rogersTrackingFileName.isEmpty()){
+        outputTree->Branch("cut_diffuser", &cut_diffuser, "cut_diffuser/I");
+    }
     
     // remember to update the selection for goodParticle if more cuts are added above
     outputTree->Branch("cut_allPassed", &goodParticle, "cut_allPassed/I");
@@ -546,7 +594,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
 
 
 
-void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString calibrationConstantsFile){
+void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString calibrationConstantsFile, QString trackingFileName){
     /*
      *  1. read the calibration file
      *  2. create the output root file
@@ -555,7 +603,8 @@ void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString cali
      *      b. Get a spacepoint at TOF1, do the same
      *      c. Get a track in the upstream tracker
      */
-
+    rogersTrackingFileName = trackingFileName;
+    file_line = 0;
     readCalibrationFile(calibrationConstantsFile);
     define_root_file(fileToSaveAs);
 
@@ -587,6 +636,8 @@ void BetterReadMAUS::readParticleEvent(){
         reset_particle_variables();
         spill_number = spill->GetSpillNumber();
         reconstructed_event_number = i;
+
+        std::cout << "Reading spill " << spill_number << ", event " << reconstructed_event_number << "\n";
 
         tof_event = (*spill->GetReconEvents())[i]->GetTOFEvent();
         scifi_event = (*spill->GetReconEvents())[i]->GetSciFiEvent();
@@ -644,7 +695,8 @@ void BetterReadMAUS::readParticleEvent(){
             goodParticle = 0;
         }
 
-
+        if(all_detectors_hit == 1 && !rogersTrackingFileName.isEmpty())
+            ReadRogersExtrapolation(spill_number, reconstructed_event_number);
 
 
         outputTree->Fill();
@@ -846,8 +898,7 @@ void BetterReadMAUS::particle_at_tracker(){
 
         TKU_Pvalue = (*track_iter)->P_value();
         TKU_chiSquare = (*track_iter)->chi2();
-
-        std::cout << "----> P value of track = " << TKU_Pvalue << "\n";
+        TKU_charge = (*track_iter)->charge();
 
         for(track_point_iter = track_points.begin(); track_point_iter != track_points.end(); ++track_point_iter){
             MAUS::SciFiTrackPoint* point = (*track_point_iter);
@@ -1021,9 +1072,9 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
 
         dt_cal = dt - beamlineTracking_data_ele_tof + (L + beamlineTracking_sim_ele_path)/u.c_light();
 
-        std::cout << "About to reconstruct a TOF event with: "
-                  << "dt = " << dt_cal << ", (x0, y0, x1, y1) = ("
-                  << TOF0_x << ", " << TOF0_y << ", " << TOF1_x << ", " << TOF1_y << ")\n";
+        //std::cout << "About to reconstruct a TOF event with: "
+        //          << "dt = " << dt_cal << ", (x0, y0, x1, y1) = ("
+        //          << TOF0_x << ", " << TOF0_y << ", " << TOF1_x << ", " << TOF1_y << ")\n";
 
         tracking->ReconstructEvent(dt_cal, TOF0_x, TOF1_x, TOF0_y, TOF1_y, mu_mass);
     }
@@ -1043,7 +1094,7 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
     TOF1_pz = result.value("P");
     TOF0_pz = TOF1_pz + result.value("dP"); // made a momentum correction based on air...
 
-    std::cout << "Pz at TOF1 = " << TOF1_pz << ", TOF0 = " << TOF0_pz << ", dPz = " << result.value("dP") << "\n";
+    //std::cout << "Pz at TOF1 = " << TOF1_pz << ", TOF0 = " << TOF0_pz << ", dPz = " << result.value("dP") << "\n";
 
     TOF0_px = TOF0_xPrime * TOF0_pz;
     TOF0_py = TOF0_yPrime * TOF0_pz;
@@ -1055,7 +1106,7 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
 
     goodRaynerReconstruction = result.value("good");
 
-    std::cout << ".... reconstruction returned good = " << goodRaynerReconstruction << "\n";
+    //std::cout << ".... reconstruction returned good = " << goodRaynerReconstruction << "\n";
 }
 
 
@@ -1071,8 +1122,8 @@ void BetterReadMAUS::calculate_particle_mass(){
     double p_track = TKU_plane1_p;
 
     particle_mass = (p_track + p_corr) / (beta * gamma);
-    std::cout << "p_track = " << p_track << ", beta = "  << beta
-              << ", gamma = " << gamma << ", m_calc =  " << particle_mass << "\n";
+    //std::cout << "p_track = " << p_track << ", beta = "  << beta
+    //          << ", gamma = " << gamma << ", m_calc =  " << particle_mass << "\n";
 }
 
 bool BetterReadMAUS::particle_in_mass_range(){
@@ -1111,4 +1162,145 @@ bool BetterReadMAUS::check_momentum_loss(){
     }
 
     return passes;
+}
+
+
+
+
+void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
+    /*
+     * Chris Rogers has extrapolated tracks from TKU station 5
+     * back to TOF1 and through the diffuser. We want to add
+     * this information to our ROOT file for easier analysis
+     *
+     * NB: This file can be for either DATA or MONTE CARLO.
+     */
+
+    //std::cout << "Reading Chris Rogers extrapolated tracks from file " << rogersTrackingFileName.toStdString() << "...";
+
+    rogers_z_diffuser1 = 13630.0; // z of most downstream plane of diffuser
+    rogers_z_diffuser2 = 13679.0;  // z of the middle of the diffuser
+    rogers_z_diffuser3 = 13728.0;
+
+    QFile file(rogersTrackingFileName);
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        std::cerr << "Failed to read tracking file.\n";
+        return;
+    }
+
+    QTextStream in(&file);
+    in.seek(file_line);
+    bool gotTOF1 = false;
+    bool gotDiffuser1 = false;
+    bool gotDiffuser2 = false;
+    bool gotDiffuser3 = false;
+    bool done = false;
+
+    while(!done && !in.atEnd()){
+        QString line = in.readLine();
+
+        if(!line.contains("#")){
+           // the line gives us some tracking info...
+            QStringList list = line.split(" ", QString::SkipEmptyParts);
+
+            // is this the spill and event we're looking for?
+            if(list.at(0).toInt() == some_spill && list.at(1).toInt() == some_event){
+                // now we've got one of four lines associated with the (spill, event) of interest
+
+                if(list.at(5).toDouble() != rogers_z_diffuser1
+                        && list.at(5).toDouble() != rogers_z_diffuser2
+                        && list.at(5).toDouble() != rogers_z_diffuser3){
+                    // this is TOF1 tracked data
+                    gotTOF1 = true;
+                    rogers_tof01 = list.at(2).toDouble();
+                    rogers_x_tof1 = list.at(3).toDouble();
+                    rogers_y_tof1 = list.at(4).toDouble();
+                    rogers_px_tof1 = list.at(6).toDouble();
+                    rogers_py_tof1 = list.at(7).toDouble();
+                    rogers_pz_tof1 = list.at(8).toDouble();
+                }
+                else if(list.at(5).toDouble() == rogers_z_diffuser1){
+                    gotDiffuser1 = true;
+                    rogers_x_diffuser1 = list.at(3).toDouble();
+                    rogers_y_diffuser1 = list.at(4).toDouble();
+                    rogers_px_diffuser1 = list.at(6).toDouble();
+                    rogers_py_diffuser1 = list.at(7).toDouble();
+                    rogers_pz_diffuser1 = list.at(8).toDouble();
+                }
+                else if(list.at(5).toDouble() == rogers_z_diffuser2){
+                    gotDiffuser2 = true;
+                    rogers_x_diffuser2 = list.at(3).toDouble();
+                    rogers_y_diffuser2 = list.at(4).toDouble();
+                    rogers_px_diffuser2 = list.at(6).toDouble();
+                    rogers_py_diffuser2 = list.at(7).toDouble();
+                    rogers_pz_diffuser2 = list.at(8).toDouble();
+                }
+                else{
+                    gotDiffuser3 = true;
+                    rogers_x_diffuser3 = list.at(3).toDouble();
+                    rogers_y_diffuser3 = list.at(4).toDouble();
+                    rogers_px_diffuser3 = list.at(6).toDouble();
+                    rogers_py_diffuser3 = list.at(7).toDouble();
+                    rogers_pz_diffuser3 = list.at(8).toDouble();
+                }
+
+            }
+
+            // are we done?
+            if(gotTOF1 && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
+
+                double r1 = TMath::Sqrt(rogers_x_diffuser1*rogers_x_diffuser1 + rogers_y_diffuser1*rogers_y_diffuser1);
+                double r2 = TMath::Sqrt(rogers_x_diffuser2*rogers_x_diffuser2 + rogers_y_diffuser2*rogers_y_diffuser2);
+                double r3 = TMath::Sqrt(rogers_x_diffuser3*rogers_x_diffuser3 + rogers_y_diffuser3*rogers_y_diffuser3);
+                double max_radius = 90.0;
+
+                file_line = in.pos();
+                if(r1 <= max_radius && r2 <= max_radius && r3 <= max_radius){
+                    cut_diffuser = 1;
+                }
+                else{
+                    cut_diffuser = 0;
+                }
+
+                done = true;
+                //std::cout << "... done\n";
+            }
+        }
+    }
+
+    file.flush();
+    file.close();
+}
+
+
+
+
+void BetterReadMAUS::reset_rogers_tracking(){
+    rogers_spill = -1;
+    rogers_event = -1;
+    cut_diffuser = -1;
+    rogers_tof01 = TMath::Infinity();
+    rogers_x_tof1 = TMath::Infinity();
+    rogers_y_tof1 = TMath::Infinity();
+    rogers_px_tof1 = TMath::Infinity();
+    rogers_py_tof1 = TMath::Infinity();
+    rogers_pz_tof1 = TMath::Infinity();
+    rogers_x_diffuser1 = TMath::Infinity();
+    rogers_y_diffuser1 = TMath::Infinity();
+    rogers_z_diffuser1 = TMath::Infinity();
+    rogers_px_diffuser1 = TMath::Infinity();
+    rogers_py_diffuser1 = TMath::Infinity();
+    rogers_pz_diffuser1 = TMath::Infinity();
+    rogers_x_diffuser2 = TMath::Infinity();
+    rogers_y_diffuser2 = TMath::Infinity();
+    rogers_z_diffuser2 = TMath::Infinity();
+    rogers_px_diffuser2 = TMath::Infinity();
+    rogers_py_diffuser2 = TMath::Infinity();
+    rogers_pz_diffuser2 = TMath::Infinity();
+    rogers_x_diffuser3 = TMath::Infinity();
+    rogers_y_diffuser3 = TMath::Infinity();
+    rogers_z_diffuser3 = TMath::Infinity();
+    rogers_px_diffuser3 = TMath::Infinity();
+    rogers_py_diffuser3 = TMath::Infinity();
+    rogers_pz_diffuser3 = TMath::Infinity();
 }

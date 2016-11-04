@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>557</width>
-    <height>211</height>
+    <width>365</width>
+    <height>418</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
@@ -41,7 +41,7 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Output</string>
+         <string>Output:</string>
         </property>
        </widget>
       </item>
@@ -50,6 +50,206 @@
       </item>
       <item>
        <widget class="QToolButton" name="btn_outputFile">
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QRadioButton" name="btn_isData">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select if input is data. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;(Changes TOF0-1 position calibration and Rogers tracking file)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Data</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="btn_isMC">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select if input is MC. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;(Changes TOF0-1 position calibration and Rogers tracking file)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>MC</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Min TOF cut:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="dbl_minTOF">
+          <property name="suffix">
+           <string> ns</string>
+          </property>
+          <property name="value">
+           <double>27.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Max TOF cut:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="dbl_maxTOF">
+          <property name="suffix">
+           <string> ns</string>
+          </property>
+          <property name="value">
+           <double>40.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_9">
+        <item>
+         <widget class="QLabel" name="label_7">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: Electron time-of-flight between TOF0 and TOF1 may be different between data and MC&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>e TOF:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="dbl_eTOF">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Note: Electron time-of-flight between TOF0 and TOF1 may be different between data and MC&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="suffix">
+           <string> ns</string>
+          </property>
+          <property name="value">
+           <double>25.480000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <item>
+         <widget class="QLabel" name="label_8">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Electron path length from simulation -- depends on beam momentum and conventional magnet settings. Examples are:&lt;/p&gt;&lt;p&gt;* (6, 140) mu+, 10.9 mm&lt;br/&gt;* (6, 200) mu+, 11.0 mm&lt;br/&gt;* (6, 240) mu+, 12.7 mm&lt;/p&gt;&lt;p&gt;* (6, 140) mu-, 13.9 mm&lt;br/&gt;* (6, 200) mu-, 13.8 mm&lt;br/&gt;* (6, 240) mu-, 14.6 mm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Simulated e path length:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="dbl_ePathLength">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Electron path length from simulation -- depends on beam momentum and conventional magnet settings. Examples are:&lt;/p&gt;&lt;p&gt;* (6, 140) mu+, 10.9 mm&lt;br/&gt;* (6, 200) mu+, 11.0 mm&lt;br/&gt;* (6, 240) mu+, 12.7 mm&lt;/p&gt;&lt;p&gt;* (6, 140) mu-, 13.9 mm&lt;br/&gt;* (6, 200) mu-, 13.8 mm&lt;br/&gt;* (6, 240) mu-, 14.6 mm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="suffix">
+           <string> mm</string>
+          </property>
+          <property name="value">
+           <double>11.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, a default geometry file will be used from run 7469.&lt;/p&gt;&lt;p&gt;This file comes with reconstructed data/MC in the geo-##### folder, where #### is the run number.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Geometry File:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="line_CDB_summary">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, a default geometry file will be used from run 7469.&lt;/p&gt;&lt;p&gt;This file comes with reconstructed data/MC in the geo-##### folder, where #### is the run number.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btn_CDB_summary">
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Diffuser tracking file:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="line_diffuser_tracking">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btn_diffuser_tracking">
         <property name="text">
          <string>...</string>
         </property>
@@ -71,8 +271,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>557</width>
-     <height>25</height>
+     <width>365</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>

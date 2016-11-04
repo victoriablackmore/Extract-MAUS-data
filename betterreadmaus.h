@@ -15,6 +15,7 @@
 #include "stepitracking.h"
 #include "units.h"
 #include <QHash>
+#include <QPair>
 
 
 #include <DataStructure/Spill.hh>
@@ -40,12 +41,15 @@ class BetterReadMAUS
 public:
     BetterReadMAUS();
 
-    void Read(QString fileToOpen, QString fileToSaveAs, QString calibrationConstantsFile);
+    void Read(QString fileToOpen, QString fileToSaveAs, QString calibrationConstantsFile, QString trackingFileName);
     void SetBeamlineParameters(double min_tof, double max_tof, double sim_ele_path, double data_ele_tof,
                                double q7_current, double q8_current, double q9_current, double q7_zPosition,
                                double q8_zPosition, double q9_zPosition,
                                double tof0_zPosition, double tof1_zPosition);
 
+
+
+    //void ReadRogersExtrapolation(QString fileToOpen);
 
 private:
     MAUS::Spill *spill;
@@ -57,6 +61,7 @@ private:
     TFile *outputFile;
     TTree *outputTree;
     void define_root_file(QString saveAs);
+    QString rogersTrackingFileName;
 
 
     int reconstructed_event_number, spill_number;
@@ -109,6 +114,7 @@ private:
     double TKU_patternRecognition_x0;
     double TKU_patternRecognition_y0;
     double TKU_assumed_field;
+    int TKU_charge;
     int TKU_goodParticle;
     int TKU_station_hits; // 3, 4 or 5 stations hit in track
 
@@ -167,6 +173,19 @@ private:
     void calculate_particle_mass();
     
 
+
+
+
+    // variables used for Rogers particle tracking
+    void ReadRogersExtrapolation(int some_spill, int some_event);
+    void reset_rogers_tracking();
+    int rogers_spill, rogers_event;
+    double rogers_tof01, rogers_x_tof1, rogers_y_tof1, rogers_px_tof1, rogers_py_tof1, rogers_pz_tof1;
+    double rogers_x_diffuser1, rogers_y_diffuser1, rogers_z_diffuser1, rogers_px_diffuser1, rogers_py_diffuser1, rogers_pz_diffuser1;
+    double rogers_x_diffuser2, rogers_y_diffuser2, rogers_z_diffuser2, rogers_px_diffuser2, rogers_py_diffuser2, rogers_pz_diffuser2;
+    double rogers_x_diffuser3, rogers_y_diffuser3, rogers_z_diffuser3, rogers_px_diffuser3, rogers_py_diffuser3, rogers_pz_diffuser3;
+    int cut_diffuser;
+    qint64 file_line;
 };
 
 #endif // BETTERREADMAUS_H

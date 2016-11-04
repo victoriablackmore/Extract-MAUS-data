@@ -185,7 +185,7 @@ void StepIIteration::calculateMomentum(double t, double delta, double mass, doub
     gamma = einstein_gamma(beta);
     P = rel_mom(beta, gamma, mass);
 
-    std::cerr << "P = " << P << ", given beta = " << beta << " and gamma = " << gamma << "\n";
+    //std::cerr << "P = " << P << ", given beta = " << beta << " and gamma = " << gamma << "\n";
 }
 
 void StepIIteration::Write() {
