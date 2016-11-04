@@ -80,7 +80,14 @@
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select if input is MC. &lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;(Changes TOF0-1 position calibration and Rogers tracking file)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>MC</string>
+           <string>MC (recon)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="btn_isMCtruth">
+          <property name="text">
+           <string>MC (truth)</string>
           </property>
          </widget>
         </item>
@@ -260,7 +267,7 @@
     <item>
      <widget class="QPushButton" name="btn_go">
       <property name="text">
-       <string>Read MAUS file and save as .dat</string>
+       <string>Read MAUS file and save as .root</string>
       </property>
      </widget>
     </item>

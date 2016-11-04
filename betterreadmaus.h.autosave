@@ -217,7 +217,7 @@ private:
     double mc_tku_s4_x, mc_tku_s4_y, mc_tku_s4_z, mc_tku_s4_px, mc_tku_s4_py, mc_tku_s4_pz, mc_tku_s4_p, mc_tku_s4_B;
     double mc_tku_s5_x, mc_tku_s5_y, mc_tku_s5_z, mc_tku_s5_px, mc_tku_s5_py, mc_tku_s5_pz, mc_tku_s5_p, mc_tku_s5_B;
 
-    double mc_diffuser_x, mc_diffuser_y, mc_diffuser_z, mc_diffuser_px, mc_diffuser_py,mc_diffuser_pz, mc_diffuser_p, mc_diffuser_B;
+    double mc_diffuser_x, mc_diffuser_y, mc_diffuser_z, mc_diffuser_px, mc_diffuser_py, mc_diffuser_pz, mc_diffuser_p, mc_diffuser_B;
 };
 
 #endif // BETTERREADMAUS_H

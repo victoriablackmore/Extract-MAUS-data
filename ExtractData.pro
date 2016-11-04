@@ -14,7 +14,6 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    readmaus_mc.cpp \
     betterreadmaus.cpp \
     quadrupole.cpp \
     slicequad.cpp \
@@ -33,7 +32,8 @@ HEADERS  += mainwindow.h \
     stepiiteration.h \
     stepitracking.h \
     tophat.h \
-    units.h
+    units.h \
+    read_mc.h
 
 FORMS    += mainwindow.ui
 

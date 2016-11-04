@@ -23,7 +23,6 @@ void MainWindow::setup_ui(){
     connect(ui->btn_isData, SIGNAL(clicked()), SLOT(update_TOF()));
     connect(ui->btn_isMC, SIGNAL(clicked()), SLOT(update_TOF()));
 
-    //read_data = new ReadMAUS();
     better_read_data = new BetterReadMAUS();
 }
 
@@ -52,7 +51,6 @@ void MainWindow::choose_open_file(){
     if(!filenames.empty()){
         ui->line_inputFile->setText(filenames.first());
         inputFilename = filenames.first();
-        //getData();
     }
 }
 
@@ -79,7 +77,6 @@ void MainWindow::choose_CDB_file(){
     dialog.setDirectory(ui->line_CDB_summary->text());
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setViewMode(QFileDialog::Detail);
-    //dialog.setNameFilter(tr("ROOT Files (*.root)"));
     if(dialog.exec()){
         filenames = dialog.selectedFiles();
     }
@@ -95,7 +92,6 @@ void MainWindow::choose_diffuser_file(){
     dialog.setDirectory(ui->line_diffuser_tracking->text());
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setViewMode(QFileDialog::Detail);
-    //dialog.setNameFilter(tr("ROOT Files (*.root)"));
     if(dialog.exec()){
         filenames = dialog.selectedFiles();
     }
@@ -115,25 +111,11 @@ void MainWindow::getData(){
     QString rogersTrackingFileName;
     if(ui->btn_isData->isChecked()){
         calibrationFileName = "run7417_calibration_file_DATA.dat";
-
-        //if(ui->line_diffuser_tracking->text().isEmpty()){
-        //    rogersTrackingFileName = "tracker-at-tof1_geometry-160_M2-5-0_v2.csv";
-        //}
-        //else{
-            rogersTrackingFileName = ui->line_diffuser_tracking->text();
-        //}
+        rogersTrackingFileName = ui->line_diffuser_tracking->text();
     }
     else{
         calibrationFileName = "run7417_calibration_file_MC.dat";
-
-        //if(ui->line_diffuser_tracking->text().isEmpty()){
-            // update this when we have a default MC file to use
-            //rogersTrackingFileName = "tracker-at-tof1_geometry-160_M2-5-0_v2.csv";
-        //    rogersTrackingFileName = "test_diffuser_tracking.txt";
-        //}
-        //else{
-            rogersTrackingFileName = ui->line_diffuser_tracking->text();
-        //}
+        rogersTrackingFileName = ui->line_diffuser_tracking->text();
     }
 
     QVector<double> magnet_currents = read_CDB_currents();
@@ -150,9 +132,14 @@ void MainWindow::getData(){
 
     std::cout << "Using Q7 = " << q7_current << ", Q8 = " << q8_current << ", Q9 = " << q9_current << "\n";
 
-    better_read_data->SetBeamlineParameters(min_tof, max_tof, sim_ele_path, data_ele_tof, q7_current, q8_current, q9_current, q7_zPosition, q8_zPosition, q9_zPosition, tof0_zPosition, tof1_zPosition);
+    if(ui->btn_isMCtruth->isChecked()){
+        better_read_data->ReadMC(inputFilename, outputFilename);
+    }
+    else{
+        better_read_data->SetBeamlineParameters(min_tof, max_tof, sim_ele_path, data_ele_tof, q7_current, q8_current, q9_current, q7_zPosition, q8_zPosition, q9_zPosition, tof0_zPosition, tof1_zPosition);
 
-    better_read_data->Read(inputFilename, outputFilename, calibrationFileName, rogersTrackingFileName);
+        better_read_data->Read(inputFilename, outputFilename, calibrationFileName, rogersTrackingFileName);
+    }
 }
 
 
@@ -181,7 +168,6 @@ QVector<double> MainWindow::read_CDB_currents(){
         if(line.contains("Substitution $Q7Current")){
             QStringList list = line.split(" ", QString::SkipEmptyParts);
 
-            //std::cout << "line = " << line.toStdString() << "\n";
             q7 = list.at(2).toDouble();
         }
         else if(line.contains("Substitution $Q8Current")){
