@@ -631,6 +631,7 @@ void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString cali
 
 }
 
+
 void BetterReadMAUS::readParticleEvent(){
     for(size_t i = 0; i < spill->GetReconEvents()->size(); ++i){
         reset_particle_variables();
@@ -756,6 +757,8 @@ void BetterReadMAUS::particle_at_TOF0(){
         TOF0_xPixel = tof0_space_points.GetGlobalPosX();
         TOF0_yPixel = tof0_space_points.GetGlobalPosY();
 
+        TOF0_z = beamlineTracking_TOF0_zPosition;
+
         TOF0_hitTime = tof0_space_points.GetTime();
 
         // 2. Loop over slab hits and look for matches:
@@ -831,6 +834,8 @@ void BetterReadMAUS::particle_at_TOF1(){
 
         TOF1_xPixel = tof1_space_points.GetGlobalPosX();
         TOF1_yPixel = tof1_space_points.GetGlobalPosY();
+
+        TOF1_z = beamlineTracking_TOF1_zPosition;
 
         TOF1_hitTime = tof1_space_points.GetTime();
 
@@ -1304,3 +1309,363 @@ void BetterReadMAUS::reset_rogers_tracking(){
     rogers_py_diffuser3 = TMath::Infinity();
     rogers_pz_diffuser3 = TMath::Infinity();
 }
+
+
+
+
+
+
+
+
+void BetterReadMAUS::reset_mc_particle_variables(){
+    // reset's particle variables
+
+    // approx locations of detector stations
+    // used to find closest virtual plane.
+    mc_tof0_z = 5286.0;
+    mc_tof1_z = 12930.0;
+    mc_tku_s1_z = 15060.0;
+    mc_tku_s2_z = 14860.0;
+    mc_tku_s3_z = 14610.0;
+    mc_tku_s4_z = 14310.0;
+    mc_tku_s5_z = 13960.0;
+    mc_diffuser_z = 13680.0; // approx.. no virtual planes in
+                             // this precise area, though
+
+    reset_mc_TOF0_variables();
+    reset_mc_TOF1_variables();
+    reset_mc_TKU_variables();
+    reset_mc_diffuser_variables();
+
+    mc_event_number = -1;
+    mc_spill_number = -1;
+    mc_particle_id = -1;
+}
+
+void BetterReadMAUS::reset_mc_TOF0_variables(){
+    mc_tof0_x = TMath::Infinity();
+    mc_tof0_y = TMath::Infinity();
+    mc_tof0_px = TMath::Infinity();
+    mc_tof0_py = TMath::Infinity();
+    mc_tof0_pz = TMath::Infinity();
+    mc_tof0_p = TMath::Infinity();
+}
+
+void BetterReadMAUS::reset_mc_TOF1_variables(){
+    mc_tof1_x = TMath::Infinity();
+    mc_tof1_y = TMath::Infinity();
+    mc_tof1_px = TMath::Infinity();
+    mc_tof1_py = TMath::Infinity();
+    mc_tof1_pz = TMath::Infinity();
+    mc_tof1_p = TMath::Infinity();
+}
+
+void BetterReadMAUS::reset_mc_TKU_variables(){
+    mc_tku_s1_x = TMath::Infinity();
+    mc_tku_s1_y = TMath::Infinity();
+    mc_tku_s1_px = TMath::Infinity();
+    mc_tku_s1_py = TMath::Infinity();
+    mc_tku_s1_pz = TMath::Infinity();
+    mc_tku_s1_p = TMath::Infinity();
+    mc_tku_s1_B = TMath::Infinity();
+
+    mc_tku_s2_x = TMath::Infinity();
+    mc_tku_s2_y = TMath::Infinity();
+    mc_tku_s2_px = TMath::Infinity();
+    mc_tku_s2_py = TMath::Infinity();
+    mc_tku_s2_pz = TMath::Infinity();
+    mc_tku_s2_p = TMath::Infinity();
+    mc_tku_s2_B = TMath::Infinity();
+
+    mc_tku_s3_x = TMath::Infinity();
+    mc_tku_s3_y = TMath::Infinity();
+    mc_tku_s3_px = TMath::Infinity();
+    mc_tku_s3_py = TMath::Infinity();
+    mc_tku_s3_pz = TMath::Infinity();
+    mc_tku_s3_p = TMath::Infinity();
+    mc_tku_s3_B = TMath::Infinity();
+
+    mc_tku_s4_x = TMath::Infinity();
+    mc_tku_s4_y = TMath::Infinity();
+    mc_tku_s4_px = TMath::Infinity();
+    mc_tku_s4_py = TMath::Infinity();
+    mc_tku_s4_pz = TMath::Infinity();
+    mc_tku_s4_p = TMath::Infinity();
+    mc_tku_s4_B = TMath::Infinity();
+
+    mc_tku_s5_x = TMath::Infinity();
+    mc_tku_s5_y = TMath::Infinity();
+    mc_tku_s5_px = TMath::Infinity();
+    mc_tku_s5_py = TMath::Infinity();
+    mc_tku_s5_pz = TMath::Infinity();
+    mc_tku_s5_p = TMath::Infinity();
+    mc_tku_s5_B = TMath::Infinity();
+}
+
+void BetterReadMAUS::reset_mc_diffuser_variables(){
+    mc_diffuser_x = TMath::Infinity();
+    mc_diffuser_y = TMath::Infinity();
+    mc_diffuser_px = TMath::Infinity();
+    mc_diffuser_py = TMath::Infinity();
+    mc_diffuser_pz = TMath::Infinity();
+    mc_diffuser_p = TMath::Infinity();
+    mc_diffuser_B = TMath::Infinity();
+}
+
+
+
+
+void BetterReadMAUS::define_mc_root_file(QString saveAs){
+    outputFile = new TFile(saveAs.toStdString().c_str(), "RECREATE");
+    outputTree = new TTree("T", "T");
+
+    outputTree->Branch("MC_SpillNumber", &mc_spill_number, "MC_SpillNumber/I");
+    outputTree->Branch("MC_EventNumber", &mc_event_number, "MC_EventNumber/I");
+    outputTree->Branch("MC_ParticleID", &mc_particle_id, "MC_ParticleID/I");
+
+    outputTree->Branch("MC_TOF0_x", &mc_tof0_x, "MC_TOF0_x/D");
+    outputTree->Branch("MC_TOF0_y", &mc_tof0_y, "MC_TOF0_y/D");
+    outputTree->Branch("MC_TOF0_z", &mc_tof0_z, "MC_TOF0_z/D");
+    outputTree->Branch("MC_TOF0_px", &mc_tof0_px, "MC_TOF0_px/D");
+    outputTree->Branch("MC_TOF0_py", &mc_tof0_py, "MC_TOF0_py/D");
+    outputTree->Branch("MC_TOF0_pz", &mc_tof0_pz, "MC_TOF0_pz/D");
+    outputTree->Branch("MC_TOF0_p", &mc_tof0_p, "MC_TOF0_p/D");
+
+    outputTree->Branch("MC_TOF1_x", &mc_tof1_x, "MC_MC_TOF1_x/D");
+    outputTree->Branch("MC_TOF1_y", &mc_tof1_y, "MC_TOF1_y/D");
+    outputTree->Branch("MC_TOF1_z", &mc_tof1_z, "MC_TOF1_z/D");
+    outputTree->Branch("MC_TOF1_px", &mc_tof1_px, "MC_TOF1_px/D");
+    outputTree->Branch("MC_TOF1_py", &mc_tof1_py, "MC_TOF1_py/D");
+    outputTree->Branch("MC_TOF1_pz", &mc_tof1_pz, "MC_TOF1_pz/D");
+    outputTree->Branch("MC_TOF1_p", &mc_tof1_p, "MC_TOF1_p/D");
+
+    outputTree->Branch("MC_TKU_s1_x", &mc_tku_s1_x, "MC_TKU_s1_x/D"); // station 1
+    outputTree->Branch("MC_TKU_s1_y", &mc_tku_s1_y, "MC_TKU_s1_y/D");
+    outputTree->Branch("MC_TKU_s1_z", &mc_tku_s1_z, "MC_TKU_s1_z/D");
+    outputTree->Branch("MC_TKU_s1_px", &mc_tku_s1_px, "MC_TKU_s1_px/D");
+    outputTree->Branch("MC_TKU_s1_py", &mc_tku_s1_py, "MC_TKU_s1_py/D");
+    outputTree->Branch("MC_TKU_s1_pz", &mc_tku_s1_pz, "MC_TKU_s1_pz/D");
+    outputTree->Branch("MC_TKU_s1_p", &mc_tku_s1_p, "MC_TKU_s1_p/D");
+
+    outputTree->Branch("MC_TKU_s2_x", &mc_tku_s2_x, "MC_TKU_s2_x/D"); // station 2
+    outputTree->Branch("MC_TKU_s2_y", &mc_tku_s2_y, "MC_TKU_s2_y/D");
+    outputTree->Branch("MC_TKU_s2_z", &mc_tku_s2_z, "MC_TKU_s2_z/D");
+    outputTree->Branch("MC_TKU_s2_px", &mc_tku_s2_px, "MC_TKU_s2_px/D");
+    outputTree->Branch("MC_TKU_s2_py", &mc_tku_s2_py, "MC_TKU_s2_py/D");
+    outputTree->Branch("MC_TKU_s2_pz", &mc_tku_s2_pz, "MC_TKU_s2_pz/D");
+    outputTree->Branch("MC_TKU_s2_p", &mc_tku_s2_p, "MC_TKU_s2_p/D");
+
+    outputTree->Branch("MC_TKU_s3_x", &mc_tku_s3_x, "MC_TKU_s3_x/D"); // station 3
+    outputTree->Branch("MC_TKU_s3_y", &mc_tku_s3_y, "MC_TKU_s3_y/D");
+    outputTree->Branch("MC_TKU_s3_z", &mc_tku_s3_z, "MC_TKU_s3_z/D");
+    outputTree->Branch("MC_TKU_s3_px", &mc_tku_s3_px, "MC_TKU_s3_px/D");
+    outputTree->Branch("MC_TKU_s3_py", &mc_tku_s3_py, "MC_TKU_s3_py/D");
+    outputTree->Branch("MC_TKU_s3_pz", &mc_tku_s3_pz, "MC_TKU_s3_pz/D");
+    outputTree->Branch("MC_TKU_s3_p", &mc_tku_s3_p, "MC_TKU_s3_p/D");
+
+    outputTree->Branch("MC_TKU_s4_x", &mc_tku_s4_x, "MC_TKU_s4_x/D"); // station 4
+    outputTree->Branch("MC_TKU_s4_y", &mc_tku_s4_y, "MC_TKU_s4_y/D");
+    outputTree->Branch("MC_TKU_s4_z", &mc_tku_s4_z, "MC_TKU_s4_z/D");
+    outputTree->Branch("MC_TKU_s4_px", &mc_tku_s4_px, "MC_TKU_s4_px/D");
+    outputTree->Branch("MC_TKU_s4_py", &mc_tku_s4_py, "MC_TKU_s4_py/D");
+    outputTree->Branch("MC_TKU_s4_pz", &mc_tku_s4_pz, "MC_TKU_s4_pz/D");
+    outputTree->Branch("MC_TKU_s4_p", &mc_tku_s4_p, "MC_TKU_s4_p/D");
+
+    outputTree->Branch("MC_TKU_s5_x", &mc_tku_s5_x, "MC_TKU_s5_x/D"); // station 5
+    outputTree->Branch("MC_TKU_s5_y", &mc_tku_s5_y, "MC_TKU_s5_y/D");
+    outputTree->Branch("MC_TKU_s5_z", &mc_tku_s5_z, "MC_TKU_s5_z/D");
+    outputTree->Branch("MC_TKU_s5_px", &mc_tku_s5_px, "MC_TKU_s5_px/D");
+    outputTree->Branch("MC_TKU_s5_py", &mc_tku_s5_py, "MC_TKU_s5_py/D");
+    outputTree->Branch("MC_TKU_s5_pz", &mc_tku_s5_pz, "MC_TKU_s5_pz/D");
+    outputTree->Branch("MC_TKU_s5_p", &mc_tku_s5_p, "MC_TKU_s5_p/D");
+
+    outputTree->Branch("MC_diffuser_x", &mc_diffuser_x, "MC_diffuser_x/D");
+    outputTree->Branch("MC_diffuser_y", &mc_diffuser_y, "MC_diffuser_y/D");
+    outputTree->Branch("MC_diffuser_z", &mc_diffuser_z, "MC_diffuser_z/D");
+    outputTree->Branch("MC_diffuser_px", &mc_diffuser_px, "MC_diffuser_px/D");
+    outputTree->Branch("MC_diffuser_py", &mc_diffuser_py, "MC_diffuser_py/D");
+    outputTree->Branch("MC_diffuser_pz", &mc_diffuser_pz, "MC_diffuser_pz/D");
+    outputTree->Branch("MC_diffuser_p", &mc_diffuser_p, "MC_diffuser_p/D");
+    outputTree->Branch("MC_diffuser_B", &mc_diffuser_B, "MC_diffuser_B/D");
+
+}
+
+
+
+
+
+
+
+void BetterReadMAUS::ReadMC(QString fileToOpen, QString fileToSaveAs){
+    /*
+     *  1. read the calibration file
+     *  2. create the output root file
+     *  3. read the maus input file
+     *      a. Get a spacepoint at TOF0, reconstruct its (x, y) using pmt times
+     *      b. Get a spacepoint at TOF1, do the same
+     *      c. Get a track in the upstream tracker
+     */
+
+    define_mc_root_file(fileToSaveAs);
+
+    MAUS::Data data;
+    irstream infile(fileToOpen.toStdString().c_str(), "Spill");
+
+    // iterate over events:
+    while(infile >> readEvent != NULL){
+        infile >> branchName("data") >> data;
+        spill = data.GetSpill();
+
+        if(spill != NULL && spill->GetDaqEventType() == "physics_event"){
+            // Found a spill that contains data. Iterate over all its events...
+
+            readMCParticleEvent();
+        }
+    }
+
+    outputFile->cd();
+    outputTree->Write();
+    outputFile->Write();
+
+    outputFile->Close();
+
+}
+
+void BetterReadMAUS::readMCParticleEvent(){
+
+    double dz = 5.0;
+    double diffuser_dz = 250.0;
+    MAUS::ThreeVector position;
+    MAUS::ThreeVector momentum;
+    MAUS::ThreeVector field;
+    MAUS::VirtualHit hit;
+    MAUS::VirtualHitArray* vhit_array;
+
+    for(size_t i = 0; i < spill->GetMCEvents()->size(); ++i){
+        reset_mc_particle_variables();
+
+        mc_spill_number = spill->GetSpillNumber();
+        mc_event_number = i;
+
+        vhit_array = (*spill->GetMCEvents())[i]->GetVirtualHits();
+        for (int v=0; v < vhit_array->size(); ++v) {
+            hit = vhit_array->at(v);
+            position = hit.GetPosition();
+
+            if(position.z() >= mc_tof0_z - dz && position.z() <= mc_tof0_z + dz){
+                momentum = hit.GetMomentum();
+
+                mc_tof0_x = position.x();
+                mc_tof0_y = position.y();
+                mc_tof0_z = position.z();
+                mc_tof0_px = momentum.x();
+                mc_tof0_py = momentum.y();
+                mc_tof0_pz = momentum.z();
+                mc_tof0_p = TMath::Sqrt(mc_tof0_px*mc_tof0_px + mc_tof0_py*mc_tof0_py + mc_tof0_pz*mc_tof0_pz);
+            }
+            else if(position.z() >= mc_tof1_z - dz && position.z() <= mc_tof1_z + dz){
+                momentum = hit.GetMomentum();
+
+                mc_tof1_x = position.x();
+                mc_tof1_y = position.y();
+                mc_tof1_z = position.z();
+                mc_tof1_px = momentum.x();
+                mc_tof1_py = momentum.y();
+                mc_tof1_pz = momentum.z();
+                mc_tof1_p = TMath::Sqrt(mc_tof1_px*mc_tof1_px + mc_tof1_py*mc_tof1_py + mc_tof1_pz*mc_tof1_pz);
+            }
+            else if(position.z() >= mc_tku_s1_z - dz && position.z() <= mc_tku_s1_z + dz){
+                momentum = hit.GetMomentum();
+
+                mc_tku_s1_x = position.x();
+                mc_tku_s1_y = position.y();
+                mc_tku_s1_z = position.z();
+                mc_tku_s1_px = momentum.x();
+                mc_tku_s1_py = momentum.y();
+                mc_tku_s1_pz = momentum.z();
+                mc_tku_s1_p = TMath::Sqrt(mc_tku_s1_px*mc_tku_s1_px + mc_tku_s1_py*mc_tku_s1_py + mc_tku_s1_pz*mc_tku_s1_pz);
+                field = hit.GetBField();
+                mc_tku_s1_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+            else if(position.z() >= mc_tku_s2_z - dz && position.z() <= mc_tku_s2_z + dz){
+                momentum = hit.GetMomentum();
+
+                mc_tku_s2_x = position.x();
+                mc_tku_s2_y = position.y();
+                mc_tku_s2_z = position.z();
+                mc_tku_s2_px = momentum.x();
+                mc_tku_s2_py = momentum.y();
+                mc_tku_s2_pz = momentum.z();
+                mc_tku_s2_p = TMath::Sqrt(mc_tku_s2_px*mc_tku_s2_px + mc_tku_s2_py*mc_tku_s2_py + mc_tku_s2_pz*mc_tku_s2_pz);
+                field = hit.GetBField();
+                mc_tku_s2_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+            else if(position.z() >= mc_tku_s3_z - dz && position.z() <= mc_tku_s3_z + dz){
+                momentum = hit.GetMomentum();
+
+                mc_tku_s3_x = position.x();
+                mc_tku_s3_y = position.y();
+                mc_tku_s3_z = position.z();
+                mc_tku_s3_px = momentum.x();
+                mc_tku_s3_py = momentum.y();
+                mc_tku_s3_pz = momentum.z();
+                mc_tku_s3_p = TMath::Sqrt(mc_tku_s3_px*mc_tku_s3_px + mc_tku_s3_py*mc_tku_s3_py + mc_tku_s3_pz*mc_tku_s3_pz);
+                field = hit.GetBField();
+                mc_tku_s3_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+            else if(position.z() >= mc_tku_s4_z - dz && position.z() <= mc_tku_s4_z + dz){
+                momentum = hit.GetMomentum();
+
+                mc_tku_s4_x = position.x();
+                mc_tku_s4_y = position.y();
+                mc_tku_s4_z = position.z();
+                mc_tku_s4_px = momentum.x();
+                mc_tku_s4_py = momentum.y();
+                mc_tku_s4_pz = momentum.z();
+                mc_tku_s4_p = TMath::Sqrt(mc_tku_s4_px*mc_tku_s4_px + mc_tku_s4_py*mc_tku_s4_py + mc_tku_s4_pz*mc_tku_s4_pz);
+                field = hit.GetBField();
+                mc_tku_s4_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+            else if(position.z() >= mc_tku_s5_z - dz && position.z() <= mc_tku_s5_z + dz){
+                momentum = hit.GetMomentum();
+
+                mc_tku_s5_x = position.x();
+                mc_tku_s5_y = position.y();
+                mc_tku_s5_z = position.z();
+                mc_tku_s5_px = momentum.x();
+                mc_tku_s5_py = momentum.y();
+                mc_tku_s5_pz = momentum.z();
+                mc_tku_s5_p = TMath::Sqrt(mc_tku_s5_px*mc_tku_s5_px + mc_tku_s5_py*mc_tku_s5_py + mc_tku_s5_pz*mc_tku_s5_pz);
+                field = hit.GetBField();
+                mc_tku_s5_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+            else if(position.z() >= mc_diffuser_z - diffuser_dz && position.z() <= mc_diffuser_z + diffuser_dz){
+                momentum = hit.GetMomentum();
+
+                mc_diffuser_x = position.x();
+                mc_diffuser_y = position.y();
+                mc_diffuser_z = position.z();
+                mc_diffuser_px = momentum.x();
+                mc_diffuser_py = momentum.y();
+                mc_diffuser_pz = momentum.z();
+                mc_diffuser_p = TMath::Sqrt(mc_diffuser_px*mc_diffuser_px + mc_diffuser_py*mc_diffuser_py + mc_diffuser_pz*mc_diffuser_pz);
+                field = hit.GetBField();
+                mc_diffuser_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+        }
+
+
+
+
+
+
+
+        outputTree->Fill();
+    }
+}
+
+
+void BetterReadMAUS::write_mc_to_file(){
+    outputTree->Fill();
+}
+

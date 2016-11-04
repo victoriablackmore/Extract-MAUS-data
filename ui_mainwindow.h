@@ -48,6 +48,7 @@ public:
     QHBoxLayout *horizontalLayout_3;
     QRadioButton *btn_isData;
     QRadioButton *btn_isMC;
+    QRadioButton *btn_isMCtruth;
     QSpacerItem *horizontalSpacer;
     QVBoxLayout *verticalLayout;
     QHBoxLayout *horizontalLayout_7;
@@ -144,6 +145,11 @@ public:
         btn_isMC->setObjectName(QStringLiteral("btn_isMC"));
 
         horizontalLayout_3->addWidget(btn_isMC);
+
+        btn_isMCtruth = new QRadioButton(centralWidget);
+        btn_isMCtruth->setObjectName(QStringLiteral("btn_isMCtruth"));
+
+        horizontalLayout_3->addWidget(btn_isMCtruth);
 
 
         horizontalLayout_4->addLayout(horizontalLayout_3);
@@ -307,7 +313,8 @@ public:
 #ifndef QT_NO_TOOLTIP
         btn_isMC->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>Select if input is MC. </p><p><br/></p><p>(Changes TOF0-1 position calibration and Rogers tracking file)</p></body></html>", 0));
 #endif // QT_NO_TOOLTIP
-        btn_isMC->setText(QApplication::translate("MainWindow", "MC", 0));
+        btn_isMC->setText(QApplication::translate("MainWindow", "MC (recon)", 0));
+        btn_isMCtruth->setText(QApplication::translate("MainWindow", "MC (truth)", 0));
         label_5->setText(QApplication::translate("MainWindow", "Min TOF cut:", 0));
         dbl_minTOF->setSuffix(QApplication::translate("MainWindow", " ns", 0));
         label_6->setText(QApplication::translate("MainWindow", "Max TOF cut:", 0));
@@ -344,7 +351,7 @@ public:
         line_diffuser_tracking->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.</p></body></html>", 0));
 #endif // QT_NO_TOOLTIP
         btn_diffuser_tracking->setText(QApplication::translate("MainWindow", "...", 0));
-        btn_go->setText(QApplication::translate("MainWindow", "Read MAUS file and save as .dat", 0));
+        btn_go->setText(QApplication::translate("MainWindow", "Read MAUS file and save as .root", 0));
     } // retranslateUi
 
 };

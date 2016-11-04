@@ -2,8 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-//#include "readmaus.h"
 #include "betterreadmaus.h"
+#include "read_mc.h"
 #include <QFileDialog>
 #include <QString>
 #include <QHash>
@@ -35,7 +35,6 @@ public slots:
 
 private:
     Ui::MainWindow *ui;
-  //  ReadMAUS* read_data;
     BetterReadMAUS* better_read_data;
 
     void setup_ui();
