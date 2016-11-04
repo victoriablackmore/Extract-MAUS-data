@@ -24,7 +24,6 @@ SOURCES += main.cpp\
     units.cpp
 
 HEADERS  += mainwindow.h \
-    readmaus_mc.h \
     betterreadmaus.h \
     quadrupole.h \
     slicequad.h \
@@ -32,8 +31,7 @@ HEADERS  += mainwindow.h \
     stepiiteration.h \
     stepitracking.h \
     tophat.h \
-    units.h \
-    read_mc.h
+    units.h
 
 FORMS    += mainwindow.ui
 

@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include "betterreadmaus.h"
-#include "read_mc.h"
 #include <QFileDialog>
 #include <QString>
 #include <QHash>
