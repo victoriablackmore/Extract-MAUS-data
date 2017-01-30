@@ -209,8 +209,8 @@ private:
     void reset_mc_TKU_variables();
     void reset_mc_diffuser_variables();
     int mc_event_number, mc_spill_number, mc_particle_id;
-    double mc_tof0_x, mc_tof0_y, mc_tof0_z, mc_tof0_px, mc_tof0_py, mc_tof0_pz, mc_tof0_p;
-    double mc_tof1_x, mc_tof1_y, mc_tof1_z, mc_tof1_px, mc_tof1_py, mc_tof1_pz, mc_tof1_p;
+    double mc_tof0_x, mc_tof0_y, mc_tof0_z, mc_tof0_px, mc_tof0_py, mc_tof0_pz, mc_tof0_p, mc_tof0_t;
+    double mc_tof1_x, mc_tof1_y, mc_tof1_z, mc_tof1_px, mc_tof1_py, mc_tof1_pz, mc_tof1_p, mc_tof1_t;
     double mc_tku_s1_x, mc_tku_s1_y, mc_tku_s1_z, mc_tku_s1_px, mc_tku_s1_py, mc_tku_s1_pz, mc_tku_s1_p, mc_tku_s1_B;
     double mc_tku_s2_x, mc_tku_s2_y, mc_tku_s2_z, mc_tku_s2_px, mc_tku_s2_py, mc_tku_s2_pz, mc_tku_s2_p, mc_tku_s2_B;
     double mc_tku_s3_x, mc_tku_s3_y, mc_tku_s3_z, mc_tku_s3_px, mc_tku_s3_py, mc_tku_s3_pz, mc_tku_s3_p, mc_tku_s3_B;

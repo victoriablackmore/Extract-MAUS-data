@@ -1349,6 +1349,7 @@ void BetterReadMAUS::reset_mc_TOF0_variables(){
     mc_tof0_py = TMath::Infinity();
     mc_tof0_pz = TMath::Infinity();
     mc_tof0_p = TMath::Infinity();
+    mc_tof0_t = TMath::Infinity();
 }
 
 void BetterReadMAUS::reset_mc_TOF1_variables(){
@@ -1358,6 +1359,7 @@ void BetterReadMAUS::reset_mc_TOF1_variables(){
     mc_tof1_py = TMath::Infinity();
     mc_tof1_pz = TMath::Infinity();
     mc_tof1_p = TMath::Infinity();
+    mc_tof1_t = TMath::Infinity();
 }
 
 void BetterReadMAUS::reset_mc_TKU_variables(){
@@ -1430,6 +1432,7 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TOF0_py", &mc_tof0_py, "MC_TOF0_py/D");
     outputTree->Branch("MC_TOF0_pz", &mc_tof0_pz, "MC_TOF0_pz/D");
     outputTree->Branch("MC_TOF0_p", &mc_tof0_p, "MC_TOF0_p/D");
+    outputTree->Branch("MC_TOF0_t", &mc_tof0_t, "MC_TOF0_t/D");
 
     outputTree->Branch("MC_TOF1_x", &mc_tof1_x, "MC_MC_TOF1_x/D");
     outputTree->Branch("MC_TOF1_y", &mc_tof1_y, "MC_TOF1_y/D");
@@ -1438,6 +1441,7 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TOF1_py", &mc_tof1_py, "MC_TOF1_py/D");
     outputTree->Branch("MC_TOF1_pz", &mc_tof1_pz, "MC_TOF1_pz/D");
     outputTree->Branch("MC_TOF1_p", &mc_tof1_p, "MC_TOF1_p/D");
+    outputTree->Branch("MC_TOF1_t", &mc_tof1_t, "MC_TOF1_t/D");
 
     outputTree->Branch("MC_TKU_s1_x", &mc_tku_s1_x, "MC_TKU_s1_x/D"); // station 1
     outputTree->Branch("MC_TKU_s1_y", &mc_tku_s1_y, "MC_TKU_s1_y/D");
@@ -1547,10 +1551,13 @@ void BetterReadMAUS::readMCParticleEvent(){
         mc_spill_number = spill->GetSpillNumber();
         mc_event_number = i;
 
+
         vhit_array = (*spill->GetMCEvents())[i]->GetVirtualHits();
         for (int v=0; v < vhit_array->size(); ++v) {
             hit = vhit_array->at(v);
             position = hit.GetPosition();
+            mc_particle_id = hit.GetParticleId();
+            //std::cout << "mc_particle_id = " << mc_particle_id << "\n";
 
             if(position.z() >= mc_tof0_z - dz && position.z() <= mc_tof0_z + dz){
                 momentum = hit.GetMomentum();
@@ -1562,6 +1569,7 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tof0_py = momentum.y();
                 mc_tof0_pz = momentum.z();
                 mc_tof0_p = TMath::Sqrt(mc_tof0_px*mc_tof0_px + mc_tof0_py*mc_tof0_py + mc_tof0_pz*mc_tof0_pz);
+                mc_tof0_t = hit.GetTime();
             }
             else if(position.z() >= mc_tof1_z - dz && position.z() <= mc_tof1_z + dz){
                 momentum = hit.GetMomentum();
@@ -1573,6 +1581,7 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tof1_py = momentum.y();
                 mc_tof1_pz = momentum.z();
                 mc_tof1_p = TMath::Sqrt(mc_tof1_px*mc_tof1_px + mc_tof1_py*mc_tof1_py + mc_tof1_pz*mc_tof1_pz);
+                mc_tof1_t = hit.GetTime();
             }
             else if(position.z() >= mc_tku_s1_z - dz && position.z() <= mc_tku_s1_z + dz){
                 momentum = hit.GetMomentum();
