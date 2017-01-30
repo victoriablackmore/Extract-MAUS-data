@@ -22,6 +22,7 @@ void MainWindow::setup_ui(){
     connect(ui->btn_diffuser_tracking, SIGNAL(clicked()), SLOT(choose_diffuser_file()));
     connect(ui->btn_isData, SIGNAL(clicked()), SLOT(update_TOF()));
     connect(ui->btn_isMC, SIGNAL(clicked()), SLOT(update_TOF()));
+    connect(ui->btn_raynerCalibrationFile, SIGNAL(clicked()), SLOT(choose_rayner_calibration_file()));
 
     better_read_data = new BetterReadMAUS();
 }
@@ -86,6 +87,21 @@ void MainWindow::choose_CDB_file(){
     }
 }
 
+void MainWindow::choose_rayner_calibration_file(){
+    QStringList filenames;
+    QFileDialog dialog(this);
+    dialog.setDirectory(ui->line_raynerCalibrationFile->text());
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setViewMode(QFileDialog::Detail);
+    if(dialog.exec()){
+        filenames = dialog.selectedFiles();
+    }
+
+    if(!filenames.empty()){
+        ui->line_raynerCalibrationFile->setText(filenames.first());
+    }
+}
+
 void MainWindow::choose_diffuser_file(){
     QStringList filenames;
     QFileDialog dialog(this);
@@ -108,15 +124,19 @@ void MainWindow::getData(){
     double data_ele_tof = ui->dbl_eTOF->value();
 
     QString calibrationFileName;
-    QString rogersTrackingFileName;
-    if(ui->btn_isData->isChecked()){
-        calibrationFileName = "run7417_calibration_file_DATA.dat";
-        rogersTrackingFileName = ui->line_diffuser_tracking->text();
+    if(ui->line_raynerCalibrationFile->text().isEmpty()){
+        if(ui->btn_isData->isChecked()){
+            calibrationFileName = "run7417_calibration_file_DATA.dat";
+        }
+        else{
+            calibrationFileName = "run7417_calibration_file_MC.dat";
+        }
     }
     else{
-        calibrationFileName = "run7417_calibration_file_MC.dat";
-        rogersTrackingFileName = ui->line_diffuser_tracking->text();
+        calibrationFileName = ui->line_raynerCalibrationFile->text();
     }
+
+    QString rogersTrackingFileName  = ui->line_diffuser_tracking->text();
 
     QVector<double> magnet_currents = read_CDB_currents();
     double q7_current = magnet_currents.at(0);

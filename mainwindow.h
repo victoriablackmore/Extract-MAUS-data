@@ -29,6 +29,7 @@ public slots:
     void choose_save_file();
     void choose_CDB_file();
     void choose_diffuser_file();
+    void choose_rayner_calibration_file();
     void getData();
     void update_TOF();
 

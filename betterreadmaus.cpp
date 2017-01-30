@@ -531,12 +531,19 @@ void BetterReadMAUS::define_root_file(QString saveAs){
 
     // Rogers' particle tracking
     if(!rogersTrackingFileName.isEmpty()){
-        outputTree->Branch("rogers_tracking_tof01", &rogers_tof01, "rogers_tracking_tof01/D");
-        outputTree->Branch("rogers_tracking_x_tof1", &rogers_x_tof1, "rogers_tracking_x_tof1/D");
-        outputTree->Branch("rogers_tracking_y_tof1", &rogers_y_tof1, "rogers_tracking_y_tof1/D");
-        outputTree->Branch("rogers_tracking_px_tof1", &rogers_px_tof1, "rogers_tracking_px_tof1/D");
-        outputTree->Branch("rogers_tracking_py_tof1", &rogers_py_tof1, "rogers_tracking_py_tof1/D");
-        outputTree->Branch("rogers_tracking_pz_tof1", &rogers_pz_tof1, "rogers_tracking_pz_tof1/D");
+        outputTree->Branch("rogers_tracking_tof01_us", &rogers_tof01_us, "rogers_tracking_tof01_us/D");
+        outputTree->Branch("rogers_tracking_x_tof1_us", &rogers_x_tof1_us, "rogers_tracking_x_tof1_us/D");
+        outputTree->Branch("rogers_tracking_y_tof1_us", &rogers_y_tof1_us, "rogers_tracking_y_tof1_us/D");
+        outputTree->Branch("rogers_tracking_px_tof1_us", &rogers_px_tof1_us, "rogers_tracking_px_tof1_us/D");
+        outputTree->Branch("rogers_tracking_py_tof1_us", &rogers_py_tof1_us, "rogers_tracking_py_tof1_us/D");
+        outputTree->Branch("rogers_tracking_pz_tof1_us", &rogers_pz_tof1_us, "rogers_tracking_pz_tof1_us/D");
+
+        outputTree->Branch("rogers_tracking_tof01_ds", &rogers_tof01_ds, "rogers_tracking_tof01_ds/D");
+        outputTree->Branch("rogers_tracking_x_tof1_ds", &rogers_x_tof1_ds, "rogers_tracking_x_tof1_ds/D");
+        outputTree->Branch("rogers_tracking_y_tof1_ds", &rogers_y_tof1_ds, "rogers_tracking_y_tof1_ds/D");
+        outputTree->Branch("rogers_tracking_px_tof1_ds", &rogers_px_tof1_ds, "rogers_tracking_px_tof1_ds/D");
+        outputTree->Branch("rogers_tracking_py_tof1_ds", &rogers_py_tof1_ds, "rogers_tracking_py_tof1_ds/D");
+        outputTree->Branch("rogers_tracking_pz_tof1_ds", &rogers_pz_tof1_ds, "rogers_tracking_pz_tof1_ds/D");
 
         outputTree->Branch("rogers_tracking_x_diffuser1", &rogers_x_diffuser1, "rogers_tracking_x_diffuser1/D");
         outputTree->Branch("rogers_tracking_y_diffuser1", &rogers_y_diffuser1, "rogers_tracking_y_diffuser1/D");
@@ -611,10 +618,19 @@ void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString cali
     MAUS::Data data;
     irstream infile(fileToOpen.toStdString().c_str(), "Spill");
 
+    int count = 0;
+    
+    last_event_number = 0;
+    mc_spill_counter = 1;
+    mc_spills = false;
+
     // iterate over events:
     while(infile >> readEvent != NULL){
         infile >> branchName("data") >> data;
         spill = data.GetSpill();
+        
+        std::cout << count << "\n";
+        count++;
 
         if(spill != NULL && spill->GetDaqEventType() == "physics_event"){
             // Found a spill that contains data. Iterate over all its events...
@@ -639,6 +655,20 @@ void BetterReadMAUS::readParticleEvent(){
         reconstructed_event_number = i;
 
         std::cout << "Reading spill " << spill_number << ", event " << reconstructed_event_number << "\n";
+
+        // safety check versus MC files all having spill == 1:
+        if(spill_number == 1 && reconstructed_event_number < last_event_number){
+            mc_spill_counter += 1;
+            if(!mc_spills){
+                // first time detecting that we're actually looking at a funky MC spill/event numbering
+                mc_spills = true;
+            }
+        }
+        last_event_number = reconstructed_event_number;
+        if(mc_spills){
+            spill_number = mc_spill_counter; // set spill number to a more appropriate count
+            std::cout << "....Adjusting spill number to " << spill_number << ", with event " << reconstructed_event_number << "\n";
+        }
 
         tof_event = (*spill->GetReconEvents())[i]->GetTOFEvent();
         scifi_event = (*spill->GetReconEvents())[i]->GetSciFiEvent();
@@ -1183,9 +1213,9 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
 
     //std::cout << "Reading Chris Rogers extrapolated tracks from file " << rogersTrackingFileName.toStdString() << "...";
 
-    rogers_z_diffuser1 = 13630.0; // z of most downstream plane of diffuser
-    rogers_z_diffuser2 = 13679.0;  // z of the middle of the diffuser
-    rogers_z_diffuser3 = 13728.0;
+    rogers_z_diffuser1 = 13961.7; // z of most upstream plane of diffuser
+    rogers_z_diffuser2 = 13942.4;  // z of the middle of the diffuser
+    rogers_z_diffuser3 = 13963.0;
 
     QFile file(rogersTrackingFileName);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
@@ -1195,7 +1225,8 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
 
     QTextStream in(&file);
     in.seek(file_line);
-    bool gotTOF1 = false;
+    bool gotTOF1_us = false;
+    bool gotTOF1_ds = false;
     bool gotDiffuser1 = false;
     bool gotDiffuser2 = false;
     bool gotDiffuser3 = false;
@@ -1211,18 +1242,24 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
             // is this the spill and event we're looking for?
             if(list.at(0).toInt() == some_spill && list.at(1).toInt() == some_event){
                 // now we've got one of four lines associated with the (spill, event) of interest
-
-                if(list.at(5).toDouble() != rogers_z_diffuser1
-                        && list.at(5).toDouble() != rogers_z_diffuser2
-                        && list.at(5).toDouble() != rogers_z_diffuser3){
+                if(list.at(5).toDouble() == 12904.4){
+                    gotTOF1_us = true;
+                    rogers_tof01_us = list.at(2).toDouble();
+                    rogers_x_tof1_us = list.at(3).toDouble();
+                    rogers_y_tof1_us = list.at(4).toDouble();
+                    rogers_px_tof1_us = list.at(6).toDouble();
+                    rogers_py_tof1_us = list.at(7).toDouble();
+                    rogers_pz_tof1_us = list.at(8).toDouble();
+                }
+                else if(list.at(5).toDouble() == 12954.4){
                     // this is TOF1 tracked data
-                    gotTOF1 = true;
-                    rogers_tof01 = list.at(2).toDouble();
-                    rogers_x_tof1 = list.at(3).toDouble();
-                    rogers_y_tof1 = list.at(4).toDouble();
-                    rogers_px_tof1 = list.at(6).toDouble();
-                    rogers_py_tof1 = list.at(7).toDouble();
-                    rogers_pz_tof1 = list.at(8).toDouble();
+                    gotTOF1_ds = true;
+                    rogers_tof01_ds = list.at(2).toDouble();
+                    rogers_x_tof1_ds = list.at(3).toDouble();
+                    rogers_y_tof1_ds = list.at(4).toDouble();
+                    rogers_px_tof1_ds = list.at(6).toDouble();
+                    rogers_py_tof1_ds = list.at(7).toDouble();
+                    rogers_pz_tof1_ds = list.at(8).toDouble();
                 }
                 else if(list.at(5).toDouble() == rogers_z_diffuser1){
                     gotDiffuser1 = true;
@@ -1252,7 +1289,7 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
             }
 
             // are we done?
-            if(gotTOF1 && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
+            if(gotTOF1_us && gotTOF1_ds && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
 
                 double r1 = TMath::Sqrt(rogers_x_diffuser1*rogers_x_diffuser1 + rogers_y_diffuser1*rogers_y_diffuser1);
                 double r2 = TMath::Sqrt(rogers_x_diffuser2*rogers_x_diffuser2 + rogers_y_diffuser2*rogers_y_diffuser2);
@@ -1284,12 +1321,18 @@ void BetterReadMAUS::reset_rogers_tracking(){
     rogers_spill = -1;
     rogers_event = -1;
     cut_diffuser = -1;
-    rogers_tof01 = TMath::Infinity();
-    rogers_x_tof1 = TMath::Infinity();
-    rogers_y_tof1 = TMath::Infinity();
-    rogers_px_tof1 = TMath::Infinity();
-    rogers_py_tof1 = TMath::Infinity();
-    rogers_pz_tof1 = TMath::Infinity();
+    rogers_tof01_us = TMath::Infinity();
+    rogers_x_tof1_us = TMath::Infinity();
+    rogers_y_tof1_us = TMath::Infinity();
+    rogers_px_tof1_us = TMath::Infinity();
+    rogers_py_tof1_us = TMath::Infinity();
+    rogers_pz_tof1_us = TMath::Infinity();
+    rogers_tof01_ds = TMath::Infinity();
+    rogers_x_tof1_ds = TMath::Infinity();
+    rogers_y_tof1_ds = TMath::Infinity();
+    rogers_px_tof1_ds = TMath::Infinity();
+    rogers_py_tof1_ds = TMath::Infinity();
+    rogers_pz_tof1_ds = TMath::Infinity();
     rogers_x_diffuser1 = TMath::Infinity();
     rogers_y_diffuser1 = TMath::Infinity();
     rogers_z_diffuser1 = TMath::Infinity();
@@ -1322,15 +1365,26 @@ void BetterReadMAUS::reset_mc_particle_variables(){
 
     // approx locations of detector stations
     // used to find closest virtual plane.
-    mc_tof0_z = 5286.0;
-    mc_tof1_z = 12930.0;
-    mc_tku_s1_z = 15060.0;
+    mc_tof0_z = 5260.66; //5286.0;
+    mc_tof1_z_us = 12904.4; //12930.0;
+    mc_tof1_z_ds = 12954.5; //12930.0;
+    /*mc_tku_s1_z = 15060.0;
     mc_tku_s2_z = 14860.0;
     mc_tku_s3_z = 14610.0;
     mc_tku_s4_z = 14310.0;
     mc_tku_s5_z = 13960.0;
-    mc_diffuser_z = 13680.0; // approx.. no virtual planes in
-                             // this precise area, though
+    mc_diffuser_z1 = 13961.7; // z of most upstream plane of diffuser
+    mc_diffuser_z2 = 13962.4;  // z of the middle of the diffuser
+    mc_diffuser_z3 = 13963.0;
+    */
+    mc_tku_s1_z = 15062.3;
+    mc_tku_s2_z = 14861.4;
+    mc_tku_s3_z = 14612.4;
+    mc_tku_s4_z = 14312.4;
+    mc_tku_s5_z = 13962.4;
+    mc_diffuser_z1 = 13961.7; // z of most upstream plane of diffuser
+    mc_diffuser_z2 = 13962.4;  // z of the middle of the diffuser
+    mc_diffuser_z3 = 13963.0;
 
     reset_mc_TOF0_variables();
     reset_mc_TOF1_variables();
@@ -1340,6 +1394,8 @@ void BetterReadMAUS::reset_mc_particle_variables(){
     mc_event_number = -1;
     mc_spill_number = -1;
     mc_particle_id = -1;
+
+
 }
 
 void BetterReadMAUS::reset_mc_TOF0_variables(){
@@ -1349,15 +1405,28 @@ void BetterReadMAUS::reset_mc_TOF0_variables(){
     mc_tof0_py = TMath::Infinity();
     mc_tof0_pz = TMath::Infinity();
     mc_tof0_p = TMath::Infinity();
+    mc_tof0_xPrime = TMath::Infinity();
+    mc_tof0_yPrime = TMath::Infinity();
 }
 
 void BetterReadMAUS::reset_mc_TOF1_variables(){
-    mc_tof1_x = TMath::Infinity();
-    mc_tof1_y = TMath::Infinity();
-    mc_tof1_px = TMath::Infinity();
-    mc_tof1_py = TMath::Infinity();
-    mc_tof1_pz = TMath::Infinity();
-    mc_tof1_p = TMath::Infinity();
+    mc_tof1_x_us = TMath::Infinity();
+    mc_tof1_y_us = TMath::Infinity();
+    mc_tof1_px_us = TMath::Infinity();
+    mc_tof1_py_us = TMath::Infinity();
+    mc_tof1_pz_us = TMath::Infinity();
+    mc_tof1_p_us = TMath::Infinity();
+    mc_tof1_xPrime_us = TMath::Infinity();
+    mc_tof1_yPrime_us = TMath::Infinity();
+
+    mc_tof1_x_ds = TMath::Infinity();
+    mc_tof1_y_ds = TMath::Infinity();
+    mc_tof1_px_ds = TMath::Infinity();
+    mc_tof1_py_ds = TMath::Infinity();
+    mc_tof1_pz_ds = TMath::Infinity();
+    mc_tof1_p_ds = TMath::Infinity();
+    mc_tof1_xPrime_ds = TMath::Infinity();
+    mc_tof1_yPrime_ds = TMath::Infinity();
 }
 
 void BetterReadMAUS::reset_mc_TKU_variables(){
@@ -1403,13 +1472,29 @@ void BetterReadMAUS::reset_mc_TKU_variables(){
 }
 
 void BetterReadMAUS::reset_mc_diffuser_variables(){
-    mc_diffuser_x = TMath::Infinity();
-    mc_diffuser_y = TMath::Infinity();
-    mc_diffuser_px = TMath::Infinity();
-    mc_diffuser_py = TMath::Infinity();
-    mc_diffuser_pz = TMath::Infinity();
-    mc_diffuser_p = TMath::Infinity();
-    mc_diffuser_B = TMath::Infinity();
+    mc_diffuser_x1 = TMath::Infinity();
+    mc_diffuser_y1 = TMath::Infinity();
+    mc_diffuser_px1 = TMath::Infinity();
+    mc_diffuser_py1 = TMath::Infinity();
+    mc_diffuser_pz1 = TMath::Infinity();
+    mc_diffuser_p1 = TMath::Infinity();
+    mc_diffuser_B1 = TMath::Infinity();
+
+    mc_diffuser_x2 = TMath::Infinity();
+    mc_diffuser_y2 = TMath::Infinity();
+    mc_diffuser_px2 = TMath::Infinity();
+    mc_diffuser_py2 = TMath::Infinity();
+    mc_diffuser_pz2 = TMath::Infinity();
+    mc_diffuser_p2 = TMath::Infinity();
+    mc_diffuser_B2 = TMath::Infinity();
+
+    mc_diffuser_x3 = TMath::Infinity();
+    mc_diffuser_y3 = TMath::Infinity();
+    mc_diffuser_px3 = TMath::Infinity();
+    mc_diffuser_py3 = TMath::Infinity();
+    mc_diffuser_pz3 = TMath::Infinity();
+    mc_diffuser_p3 = TMath::Infinity();
+    mc_diffuser_B3 = TMath::Infinity();
 }
 
 
@@ -1430,14 +1515,29 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TOF0_py", &mc_tof0_py, "MC_TOF0_py/D");
     outputTree->Branch("MC_TOF0_pz", &mc_tof0_pz, "MC_TOF0_pz/D");
     outputTree->Branch("MC_TOF0_p", &mc_tof0_p, "MC_TOF0_p/D");
+    outputTree->Branch("MC_TOF0_xPrime", &mc_tof0_xPrime, "MC_TOF0_xPrime/D");
+    outputTree->Branch("MC_TOF0_yPrime", &mc_tof0_yPrime, "MC_TOF0_yPrime/D");
 
-    outputTree->Branch("MC_TOF1_x", &mc_tof1_x, "MC_MC_TOF1_x/D");
-    outputTree->Branch("MC_TOF1_y", &mc_tof1_y, "MC_TOF1_y/D");
-    outputTree->Branch("MC_TOF1_z", &mc_tof1_z, "MC_TOF1_z/D");
-    outputTree->Branch("MC_TOF1_px", &mc_tof1_px, "MC_TOF1_px/D");
-    outputTree->Branch("MC_TOF1_py", &mc_tof1_py, "MC_TOF1_py/D");
-    outputTree->Branch("MC_TOF1_pz", &mc_tof1_pz, "MC_TOF1_pz/D");
-    outputTree->Branch("MC_TOF1_p", &mc_tof1_p, "MC_TOF1_p/D");
+    outputTree->Branch("MC_TOF1_x_us", &mc_tof1_x_us, "MC_MC_TOF1_x_us/D");
+    outputTree->Branch("MC_TOF1_y_us", &mc_tof1_y_us, "MC_TOF1_y_us/D");
+    outputTree->Branch("MC_TOF1_z_us", &mc_tof1_z_us, "MC_TOF1_z_us/D");
+    outputTree->Branch("MC_TOF1_px_us", &mc_tof1_px_us, "MC_TOF1_px_us/D");
+    outputTree->Branch("MC_TOF1_py_us", &mc_tof1_py_us, "MC_TOF1_py_us/D");
+    outputTree->Branch("MC_TOF1_pz_us", &mc_tof1_pz_us, "MC_TOF1_pz_us/D");
+    outputTree->Branch("MC_TOF1_p_us", &mc_tof1_p_us, "MC_TOF1_p_us/D");
+    outputTree->Branch("MC_TOF1_xPrime_us", &mc_tof1_xPrime_us, "MC_TOF1_xPrime_us/D");
+    outputTree->Branch("MC_TOF1_yPrime_us", &mc_tof1_yPrime_us, "MC_TOF1_yPrime_us/D");
+
+    outputTree->Branch("MC_TOF1_x_ds", &mc_tof1_x_ds, "MC_MC_TOF1_x_ds/D");
+    outputTree->Branch("MC_TOF1_y_ds", &mc_tof1_y_ds, "MC_TOF1_y_ds/D");
+    outputTree->Branch("MC_TOF1_z_ds", &mc_tof1_z_ds, "MC_TOF1_z_ds/D");
+    outputTree->Branch("MC_TOF1_px_ds", &mc_tof1_px_ds, "MC_TOF1_px_ds/D");
+    outputTree->Branch("MC_TOF1_py_ds", &mc_tof1_py_ds, "MC_TOF1_py_ds/D");
+    outputTree->Branch("MC_TOF1_pz_ds", &mc_tof1_pz_ds, "MC_TOF1_pz_ds/D");
+    outputTree->Branch("MC_TOF1_p_ds", &mc_tof1_p_ds, "MC_TOF1_p_ds/D");
+    outputTree->Branch("MC_TOF1_xPrime_ds", &mc_tof1_xPrime_ds, "MC_TOF1_xPrime_ds/D");
+    outputTree->Branch("MC_TOF1_yPrime_ds", &mc_tof1_yPrime_ds, "MC_TOF1_yPrime_ds/D");
+
 
     outputTree->Branch("MC_TKU_s1_x", &mc_tku_s1_x, "MC_TKU_s1_x/D"); // station 1
     outputTree->Branch("MC_TKU_s1_y", &mc_tku_s1_y, "MC_TKU_s1_y/D");
@@ -1479,14 +1579,32 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TKU_s5_pz", &mc_tku_s5_pz, "MC_TKU_s5_pz/D");
     outputTree->Branch("MC_TKU_s5_p", &mc_tku_s5_p, "MC_TKU_s5_p/D");
 
-    outputTree->Branch("MC_diffuser_x", &mc_diffuser_x, "MC_diffuser_x/D");
-    outputTree->Branch("MC_diffuser_y", &mc_diffuser_y, "MC_diffuser_y/D");
-    outputTree->Branch("MC_diffuser_z", &mc_diffuser_z, "MC_diffuser_z/D");
-    outputTree->Branch("MC_diffuser_px", &mc_diffuser_px, "MC_diffuser_px/D");
-    outputTree->Branch("MC_diffuser_py", &mc_diffuser_py, "MC_diffuser_py/D");
-    outputTree->Branch("MC_diffuser_pz", &mc_diffuser_pz, "MC_diffuser_pz/D");
-    outputTree->Branch("MC_diffuser_p", &mc_diffuser_p, "MC_diffuser_p/D");
-    outputTree->Branch("MC_diffuser_B", &mc_diffuser_B, "MC_diffuser_B/D");
+    outputTree->Branch("MC_diffuser_x1", &mc_diffuser_x1, "MC_diffuser_x1/D");
+    outputTree->Branch("MC_diffuser_y1", &mc_diffuser_y1, "MC_diffuser_y1/D");
+    outputTree->Branch("MC_diffuser_z1", &mc_diffuser_z1, "MC_diffuser_z1/D");
+    outputTree->Branch("MC_diffuser_px1", &mc_diffuser_px1, "MC_diffuser_px1/D");
+    outputTree->Branch("MC_diffuser_py1", &mc_diffuser_py1, "MC_diffuser_py1/D");
+    outputTree->Branch("MC_diffuser_pz1", &mc_diffuser_pz1, "MC_diffuser_pz1/D");
+    outputTree->Branch("MC_diffuser_p1", &mc_diffuser_p1, "MC_diffuser_p1/D");
+    outputTree->Branch("MC_diffuser_B1", &mc_diffuser_B1, "MC_diffuser_B1/D");
+
+    outputTree->Branch("MC_diffuser_x2", &mc_diffuser_x2, "MC_diffuser_x2/D");
+    outputTree->Branch("MC_diffuser_y2", &mc_diffuser_y2, "MC_diffuser_y2/D");
+    outputTree->Branch("MC_diffuser_z2", &mc_diffuser_z2, "MC_diffuser_z2/D");
+    outputTree->Branch("MC_diffuser_px2", &mc_diffuser_px2, "MC_diffuser_px2/D");
+    outputTree->Branch("MC_diffuser_py2", &mc_diffuser_py2, "MC_diffuser_py2/D");
+    outputTree->Branch("MC_diffuser_pz2", &mc_diffuser_pz2, "MC_diffuser_pz2/D");
+    outputTree->Branch("MC_diffuser_p2", &mc_diffuser_p2, "MC_diffuser_p2/D");
+    outputTree->Branch("MC_diffuser_B2", &mc_diffuser_B2, "MC_diffuser_B2/D");
+
+    outputTree->Branch("MC_diffuser_x3", &mc_diffuser_x3, "MC_diffuser_x3/D");
+    outputTree->Branch("MC_diffuser_y3", &mc_diffuser_y3, "MC_diffuser_y3/D");
+    outputTree->Branch("MC_diffuser_z3", &mc_diffuser_z3, "MC_diffuser_z3/D");
+    outputTree->Branch("MC_diffuser_px3", &mc_diffuser_px3, "MC_diffuser_px3/D");
+    outputTree->Branch("MC_diffuser_py3", &mc_diffuser_py3, "MC_diffuser_py3/D");
+    outputTree->Branch("MC_diffuser_pz3", &mc_diffuser_pz3, "MC_diffuser_pz3/D");
+    outputTree->Branch("MC_diffuser_p3", &mc_diffuser_p3, "MC_diffuser_p3/D");
+    outputTree->Branch("MC_diffuser_B3", &mc_diffuser_B3, "MC_diffuser_B3/D");
 
 }
 
@@ -1511,6 +1629,12 @@ void BetterReadMAUS::ReadMC(QString fileToOpen, QString fileToSaveAs){
     MAUS::Data data;
     irstream infile(fileToOpen.toStdString().c_str(), "Spill");
 
+    int count = 0;
+
+    last_event_number = 0;
+    mc_spill_counter = 1;
+    mc_spills = false;
+
     // iterate over events:
     while(infile >> readEvent != NULL){
         infile >> branchName("data") >> data;
@@ -1533,8 +1657,8 @@ void BetterReadMAUS::ReadMC(QString fileToOpen, QString fileToSaveAs){
 
 void BetterReadMAUS::readMCParticleEvent(){
 
-    double dz = 5.0;
-    double diffuser_dz = 250.0;
+    double dz = 0.1;
+    double diffuser_dz = 0.1;
     MAUS::ThreeVector position;
     MAUS::ThreeVector momentum;
     MAUS::ThreeVector field;
@@ -1547,12 +1671,47 @@ void BetterReadMAUS::readMCParticleEvent(){
         mc_spill_number = spill->GetSpillNumber();
         mc_event_number = i;
 
+        std::cout << "Reading spill " << mc_spill_number << ", event " << mc_event_number;
+
+        // safety check versus MC files all having spill == 1:
+        if(mc_spill_number == 1 && mc_event_number < last_event_number){
+            mc_spill_counter += 1;
+            if(!mc_spills){
+                // first time detecting that we're actually looking at a funky MC spill/event numbering
+                mc_spills = true;
+            }
+        }
+        last_event_number = mc_event_number;
+        if(mc_spills){
+            mc_spill_number = mc_spill_counter; // set spill number to a more appropriate count
+            std::cout << " --> " << mc_spill_number << ", with event " << mc_event_number << "\n";
+        }
+        else{
+            std::cout << "\n";
+        }
+
+
+        bool testping = false;
+
         vhit_array = (*spill->GetMCEvents())[i]->GetVirtualHits();
         for (int v=0; v < vhit_array->size(); ++v) {
             hit = vhit_array->at(v);
             position = hit.GetPosition();
 
+            testping = false;
+
+            if(position.z() >= mc_diffuser_z1 - 1500.0 && position.z() <= mc_diffuser_z1 + 1500.0){
+                std::cout << "...................Looking for z = " << mc_diffuser_z1 <<  "--> found z = " << position.z() << "\n";
+                testping = true;
+            }
+
+            //std::cout << "Plane position = " << position.z() << " compared to z = " << mc_diffuser_z1 << ", "  << mc_diffuser_z2 << ", or " << mc_diffuser_z3 << "\n";
+
             if(position.z() >= mc_tof0_z - dz && position.z() <= mc_tof0_z + dz){
+                if(testping){
+                    std::cout << "ping, tof0 with z = " << position.z() << "\n";
+                }
+
                 momentum = hit.GetMomentum();
 
                 mc_tof0_x = position.x();
@@ -1563,18 +1722,42 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tof0_pz = momentum.z();
                 mc_tof0_p = TMath::Sqrt(mc_tof0_px*mc_tof0_px + mc_tof0_py*mc_tof0_py + mc_tof0_pz*mc_tof0_pz);
             }
-            else if(position.z() >= mc_tof1_z - dz && position.z() <= mc_tof1_z + dz){
+            else if(position.z() >= mc_tof1_z_us - dz && position.z() <= mc_tof1_z_us + dz){
+                if(testping){
+                    std::cout << "ping, tof1 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
 
-                mc_tof1_x = position.x();
-                mc_tof1_y = position.y();
-                mc_tof1_z = position.z();
-                mc_tof1_px = momentum.x();
-                mc_tof1_py = momentum.y();
-                mc_tof1_pz = momentum.z();
-                mc_tof1_p = TMath::Sqrt(mc_tof1_px*mc_tof1_px + mc_tof1_py*mc_tof1_py + mc_tof1_pz*mc_tof1_pz);
+                mc_tof1_x_us = position.x();
+                mc_tof1_y_us = position.y();
+                mc_tof1_z_us = position.z();
+                mc_tof1_px_us = momentum.x();
+                mc_tof1_py_us = momentum.y();
+                mc_tof1_pz_us = momentum.z();
+                mc_tof1_p_us = TMath::Sqrt(mc_tof1_px_us*mc_tof1_px_us + mc_tof1_py_us*mc_tof1_py_us + mc_tof1_pz_us*mc_tof1_pz_us);
+                mc_tof1_xPrime_us = mc_tof1_px_us/mc_tof1_pz_us;
+                mc_tof1_yPrime_us = mc_tof1_py_us/mc_tof1_pz_us;
+            }
+            else if(position.z() >= mc_tof1_z_ds - dz && position.z() <= mc_tof1_z_ds + dz){
+                if(testping){
+                    std::cout << "ping, tof1 with z = " << position.z() << "\n";
+                }
+                momentum = hit.GetMomentum();
+
+                mc_tof1_x_ds = position.x();
+                mc_tof1_y_ds = position.y();
+                mc_tof1_z_ds = position.z();
+                mc_tof1_px_ds = momentum.x();
+                mc_tof1_py_ds = momentum.y();
+                mc_tof1_pz_ds = momentum.z();
+                mc_tof1_p_ds = TMath::Sqrt(mc_tof1_px_ds*mc_tof1_px_ds + mc_tof1_py_ds*mc_tof1_py_ds + mc_tof1_pz_ds*mc_tof1_pz_ds);
+                mc_tof1_xPrime_ds = mc_tof1_px_ds/mc_tof1_pz_ds;
+                mc_tof1_yPrime_ds = mc_tof1_py_ds/mc_tof1_pz_ds;
             }
             else if(position.z() >= mc_tku_s1_z - dz && position.z() <= mc_tku_s1_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s1 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
 
                 mc_tku_s1_x = position.x();
@@ -1588,6 +1771,9 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s1_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
             else if(position.z() >= mc_tku_s2_z - dz && position.z() <= mc_tku_s2_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s2 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
 
                 mc_tku_s2_x = position.x();
@@ -1601,6 +1787,9 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s2_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
             else if(position.z() >= mc_tku_s3_z - dz && position.z() <= mc_tku_s3_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s3 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
 
                 mc_tku_s3_x = position.x();
@@ -1614,6 +1803,9 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s3_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
             else if(position.z() >= mc_tku_s4_z - dz && position.z() <= mc_tku_s4_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s4 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
 
                 mc_tku_s4_x = position.x();
@@ -1627,6 +1819,9 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s4_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
             else if(position.z() >= mc_tku_s5_z - dz && position.z() <= mc_tku_s5_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s5 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
 
                 mc_tku_s5_x = position.x();
@@ -1639,18 +1834,53 @@ void BetterReadMAUS::readMCParticleEvent(){
                 field = hit.GetBField();
                 mc_tku_s5_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
-            else if(position.z() >= mc_diffuser_z - diffuser_dz && position.z() <= mc_diffuser_z + diffuser_dz){
+            else if(position.z() == mc_diffuser_z1 - diffuser_dz && position.z() <= mc_diffuser_z1 + diffuser_dz){
+                if(testping){
+                    std::cout << "ping, diff1 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
 
-                mc_diffuser_x = position.x();
-                mc_diffuser_y = position.y();
-                mc_diffuser_z = position.z();
-                mc_diffuser_px = momentum.x();
-                mc_diffuser_py = momentum.y();
-                mc_diffuser_pz = momentum.z();
-                mc_diffuser_p = TMath::Sqrt(mc_diffuser_px*mc_diffuser_px + mc_diffuser_py*mc_diffuser_py + mc_diffuser_pz*mc_diffuser_pz);
+                mc_diffuser_x1 = position.x();
+                mc_diffuser_y1 = position.y();
+                mc_diffuser_z1 = position.z();
+                mc_diffuser_px1 = momentum.x();
+                mc_diffuser_py1 = momentum.y();
+                mc_diffuser_pz1 = momentum.z();
+                mc_diffuser_p1 = TMath::Sqrt(mc_diffuser_px1*mc_diffuser_px1 + mc_diffuser_py1*mc_diffuser_py1 + mc_diffuser_pz1*mc_diffuser_pz1);
                 field = hit.GetBField();
-                mc_diffuser_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+                mc_diffuser_B1 = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+            else if(position.z() >= mc_diffuser_z2 - diffuser_dz && position.z() <= mc_diffuser_z2 + diffuser_dz){
+                if(testping){
+                    std::cout << "ping, diff2 with z = " << position.z() << "\n";
+                }
+                momentum = hit.GetMomentum();
+
+                mc_diffuser_x2 = position.x();
+                mc_diffuser_y2 = position.y();
+                mc_diffuser_z2 = position.z();
+                mc_diffuser_px2 = momentum.x();
+                mc_diffuser_py2 = momentum.y();
+                mc_diffuser_pz2 = momentum.z();
+                mc_diffuser_p2 = TMath::Sqrt(mc_diffuser_px2*mc_diffuser_px2 + mc_diffuser_py2*mc_diffuser_py2 + mc_diffuser_pz2*mc_diffuser_pz2);
+                field = hit.GetBField();
+                mc_diffuser_B2 = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+            else if(position.z() >= mc_diffuser_z3 - diffuser_dz && position.z() <= mc_diffuser_z3 + diffuser_dz){
+                if(testping){
+                    std::cout << "ping, diff3 with z = " << position.z() << "\n";
+                }
+                momentum = hit.GetMomentum();
+
+                mc_diffuser_x3 = position.x();
+                mc_diffuser_y3 = position.y();
+                mc_diffuser_z3 = position.z();
+                mc_diffuser_px3 = momentum.x();
+                mc_diffuser_py3 = momentum.y();
+                mc_diffuser_pz3 = momentum.z();
+                mc_diffuser_p3 = TMath::Sqrt(mc_diffuser_px3*mc_diffuser_px3 + mc_diffuser_py3*mc_diffuser_py3 + mc_diffuser_pz3*mc_diffuser_pz3);
+                field = hit.GetBField();
+                mc_diffuser_B3 = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
         }
 

@@ -70,6 +70,10 @@ private:
 
     int reconstructed_event_number, spill_number;
 
+    int last_event_number;
+    int mc_spill_counter;
+    bool mc_spills;
+
 
     double TOF0_xPixel, TOF0_yPixel; // (x, y) positions of hits
     double TOF0_x, TOF0_y, TOF0_z; // (x, y) positions of hits based on PMT times
@@ -185,7 +189,8 @@ private:
     void ReadRogersExtrapolation(int some_spill, int some_event);
     void reset_rogers_tracking();
     int rogers_spill, rogers_event;
-    double rogers_tof01, rogers_x_tof1, rogers_y_tof1, rogers_px_tof1, rogers_py_tof1, rogers_pz_tof1;
+    double rogers_tof01_ds, rogers_x_tof1_ds, rogers_y_tof1_ds, rogers_px_tof1_ds, rogers_py_tof1_ds, rogers_pz_tof1_ds;
+    double rogers_tof01_us, rogers_x_tof1_us, rogers_y_tof1_us, rogers_px_tof1_us, rogers_py_tof1_us, rogers_pz_tof1_us;
     double rogers_x_diffuser1, rogers_y_diffuser1, rogers_z_diffuser1, rogers_px_diffuser1, rogers_py_diffuser1, rogers_pz_diffuser1;
     double rogers_x_diffuser2, rogers_y_diffuser2, rogers_z_diffuser2, rogers_px_diffuser2, rogers_py_diffuser2, rogers_pz_diffuser2;
     double rogers_x_diffuser3, rogers_y_diffuser3, rogers_z_diffuser3, rogers_px_diffuser3, rogers_py_diffuser3, rogers_pz_diffuser3;
@@ -209,15 +214,18 @@ private:
     void reset_mc_TKU_variables();
     void reset_mc_diffuser_variables();
     int mc_event_number, mc_spill_number, mc_particle_id;
-    double mc_tof0_x, mc_tof0_y, mc_tof0_z, mc_tof0_px, mc_tof0_py, mc_tof0_pz, mc_tof0_p;
-    double mc_tof1_x, mc_tof1_y, mc_tof1_z, mc_tof1_px, mc_tof1_py, mc_tof1_pz, mc_tof1_p;
+    double mc_tof0_x, mc_tof0_y, mc_tof0_z, mc_tof0_px, mc_tof0_py, mc_tof0_pz, mc_tof0_p, mc_tof0_xPrime, mc_tof0_yPrime;
+    double mc_tof1_x_us, mc_tof1_y_us, mc_tof1_z_us, mc_tof1_px_us, mc_tof1_py_us, mc_tof1_pz_us, mc_tof1_p_us, mc_tof1_xPrime_us, mc_tof1_yPrime_us;
+    double mc_tof1_x_ds, mc_tof1_y_ds, mc_tof1_z_ds, mc_tof1_px_ds, mc_tof1_py_ds, mc_tof1_pz_ds, mc_tof1_p_ds, mc_tof1_xPrime_ds, mc_tof1_yPrime_ds;
     double mc_tku_s1_x, mc_tku_s1_y, mc_tku_s1_z, mc_tku_s1_px, mc_tku_s1_py, mc_tku_s1_pz, mc_tku_s1_p, mc_tku_s1_B;
     double mc_tku_s2_x, mc_tku_s2_y, mc_tku_s2_z, mc_tku_s2_px, mc_tku_s2_py, mc_tku_s2_pz, mc_tku_s2_p, mc_tku_s2_B;
     double mc_tku_s3_x, mc_tku_s3_y, mc_tku_s3_z, mc_tku_s3_px, mc_tku_s3_py, mc_tku_s3_pz, mc_tku_s3_p, mc_tku_s3_B;
     double mc_tku_s4_x, mc_tku_s4_y, mc_tku_s4_z, mc_tku_s4_px, mc_tku_s4_py, mc_tku_s4_pz, mc_tku_s4_p, mc_tku_s4_B;
     double mc_tku_s5_x, mc_tku_s5_y, mc_tku_s5_z, mc_tku_s5_px, mc_tku_s5_py, mc_tku_s5_pz, mc_tku_s5_p, mc_tku_s5_B;
 
-    double mc_diffuser_x, mc_diffuser_y, mc_diffuser_z, mc_diffuser_px, mc_diffuser_py,mc_diffuser_pz, mc_diffuser_p, mc_diffuser_B;
+    double mc_diffuser_x1, mc_diffuser_y1, mc_diffuser_z1, mc_diffuser_px1, mc_diffuser_py1, mc_diffuser_pz1, mc_diffuser_p1, mc_diffuser_B1;
+    double mc_diffuser_x2, mc_diffuser_y2, mc_diffuser_z2, mc_diffuser_px2, mc_diffuser_py2, mc_diffuser_pz2, mc_diffuser_p2, mc_diffuser_B2;
+    double mc_diffuser_x3, mc_diffuser_y3, mc_diffuser_z3, mc_diffuser_px3, mc_diffuser_py3, mc_diffuser_pz3, mc_diffuser_p3, mc_diffuser_B3;
 };
 
 #endif // BETTERREADMAUS_H

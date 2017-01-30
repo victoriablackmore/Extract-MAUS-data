@@ -63,6 +63,10 @@ public:
     QHBoxLayout *horizontalLayout_10;
     QLabel *label_8;
     QDoubleSpinBox *dbl_ePathLength;
+    QHBoxLayout *horizontalLayout_11;
+    QLabel *label_9;
+    QLineEdit *line_raynerCalibrationFile;
+    QToolButton *btn_raynerCalibrationFile;
     QHBoxLayout *horizontalLayout_6;
     QLabel *label_3;
     QLineEdit *line_CDB_summary;
@@ -80,7 +84,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
-        MainWindow->resize(365, 418);
+        MainWindow->resize(385, 452);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         verticalLayout_2 = new QVBoxLayout(centralWidget);
@@ -235,6 +239,27 @@ public:
 
         verticalLayout_2->addLayout(verticalLayout);
 
+        horizontalLayout_11 = new QHBoxLayout();
+        horizontalLayout_11->setSpacing(6);
+        horizontalLayout_11->setObjectName(QStringLiteral("horizontalLayout_11"));
+        label_9 = new QLabel(centralWidget);
+        label_9->setObjectName(QStringLiteral("label_9"));
+
+        horizontalLayout_11->addWidget(label_9);
+
+        line_raynerCalibrationFile = new QLineEdit(centralWidget);
+        line_raynerCalibrationFile->setObjectName(QStringLiteral("line_raynerCalibrationFile"));
+
+        horizontalLayout_11->addWidget(line_raynerCalibrationFile);
+
+        btn_raynerCalibrationFile = new QToolButton(centralWidget);
+        btn_raynerCalibrationFile->setObjectName(QStringLiteral("btn_raynerCalibrationFile"));
+
+        horizontalLayout_11->addWidget(btn_raynerCalibrationFile);
+
+
+        verticalLayout_2->addLayout(horizontalLayout_11);
+
         horizontalLayout_6 = new QHBoxLayout();
         horizontalLayout_6->setSpacing(6);
         horizontalLayout_6->setObjectName(QStringLiteral("horizontalLayout_6"));
@@ -285,7 +310,7 @@ public:
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 365, 22));
+        menuBar->setGeometry(QRect(0, 0, 385, 22));
         MainWindow->setMenuBar(menuBar);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -335,6 +360,14 @@ public:
         dbl_ePathLength->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>Electron path length from simulation -- depends on beam momentum and conventional magnet settings. Examples are:</p><p>* (6, 140) mu+, 10.9 mm<br/>* (6, 200) mu+, 11.0 mm<br/>* (6, 240) mu+, 12.7 mm</p><p>* (6, 140) mu-, 13.9 mm<br/>* (6, 200) mu-, 13.8 mm<br/>* (6, 240) mu-, 14.6 mm</p></body></html>", 0));
 #endif // QT_NO_TOOLTIP
         dbl_ePathLength->setSuffix(QApplication::translate("MainWindow", " mm", 0));
+#ifndef QT_NO_TOOLTIP
+        label_9->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, a default TOF0/1 PMT-position calibration (see M. Rayner's thesis) will be used.</p></body></html>", 0));
+#endif // QT_NO_TOOLTIP
+        label_9->setText(QApplication::translate("MainWindow", "Rayner calibration File:", 0));
+#ifndef QT_NO_TOOLTIP
+        line_raynerCalibrationFile->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, a default TOF0/1 PMT-position calibration (see M. Rayner's thesis) will be used.</p></body></html>", 0));
+#endif // QT_NO_TOOLTIP
+        btn_raynerCalibrationFile->setText(QApplication::translate("MainWindow", "...", 0));
 #ifndef QT_NO_TOOLTIP
         label_3->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, a default geometry file will be used from run 7469.</p><p>This file comes with reconstructed data/MC in the geo-##### folder, where #### is the run number.</p></body></html>", 0));
 #endif // QT_NO_TOOLTIP
