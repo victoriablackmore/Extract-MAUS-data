@@ -12,21 +12,21 @@ BetterReadMAUS::BetterReadMAUS()
 
 void BetterReadMAUS::reset_particle_variables(){
     // reset's particle variables
-
+    
     reset_TOF0_variables();
     reset_TOF1_variables();
     reset_TKU_variables();
     reset_rogers_tracking();
-
+    
     reconstructed_event_number = -1;
     spill_number = -1;
-
+    
     goodParticle = 0;
     goodRaynerReconstruction = 0;
     goodTimeOfFlight = 0;
     all_detectors_hit = 0;
     good_mass_cut = 0;
-
+    
     particle_mass = TMath::Infinity();
 }
 
@@ -49,7 +49,7 @@ void BetterReadMAUS::reset_TOF0_variables(){
     TOF0_pz = TMath::Infinity();
     TOF0_p = TMath::Infinity();
     only_hit_at_TOF0 = 0;
-
+    
 }
 
 void BetterReadMAUS::reset_TOF1_variables(){
@@ -66,12 +66,12 @@ void BetterReadMAUS::reset_TOF1_variables(){
     TOF1_vertical_slab_tMinus = TMath::Infinity();
     TOF1_vertical_slab_tPlus = TMath::Infinity();
     TOF1_hitTime = TMath::Infinity();
-
+    
     TOF1_px = TMath::Infinity();
     TOF1_py = TMath::Infinity();
     TOF1_pz = TMath::Infinity();
     TOF1_p = TMath::Infinity();
-
+    
     only_hit_at_TOF1 = 0;
 }
 
@@ -90,7 +90,7 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane1_px_error = TMath::Infinity();
     TKU_plane1_py_error = TMath::Infinity();
     TKU_plane1_kappa_error = TMath::Infinity();
-
+    
     TKU_plane2_x = TMath::Infinity();
     TKU_plane2_y = TMath::Infinity();
     TKU_plane2_z = TMath::Infinity();
@@ -104,7 +104,7 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane2_px_error = TMath::Infinity();
     TKU_plane2_py_error = TMath::Infinity();
     TKU_plane2_kappa_error = TMath::Infinity();
-
+    
     TKU_plane3_x = TMath::Infinity();
     TKU_plane3_y = TMath::Infinity();
     TKU_plane3_z = TMath::Infinity();
@@ -118,7 +118,7 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane3_px_error = TMath::Infinity();
     TKU_plane3_py_error = TMath::Infinity();
     TKU_plane3_kappa_error = TMath::Infinity();
-
+    
     TKU_plane4_x = TMath::Infinity();
     TKU_plane4_y = TMath::Infinity();
     TKU_plane4_z = TMath::Infinity();
@@ -132,7 +132,7 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane4_px_error = TMath::Infinity();
     TKU_plane4_py_error = TMath::Infinity();
     TKU_plane4_kappa_error = TMath::Infinity();
-
+    
     TKU_plane5_x = TMath::Infinity();
     TKU_plane5_y = TMath::Infinity();
     TKU_plane5_z = TMath::Infinity();
@@ -146,7 +146,7 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane5_px_error = TMath::Infinity();
     TKU_plane5_py_error = TMath::Infinity();
     TKU_plane5_kappa_error = TMath::Infinity();
-
+    
     TKU_Pvalue = TMath::Infinity();
     TKU_chiSquare = TMath::Infinity();
     TKU_patternRecognition_dipAngle = TMath::Infinity();
@@ -159,7 +159,7 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane3_pull = TMath::Infinity();
     TKU_plane4_pull = TMath::Infinity();
     TKU_plane5_pull = TMath::Infinity();
-
+    
     TKU_station_hits = 0;
     TKU_goodParticle = 0;
     only_track_in_TKU = 0;
@@ -173,24 +173,24 @@ void BetterReadMAUS::readCalibrationFile(QString calibrationFile){
     reading_TOF1 = false;
     reading_horizontal = false;
     reading_vertical = false;
-
+    
     TOF0_horizontal_calibration.clear();
     TOF0_vertical_calibration.clear();
     TOF1_horizontal_calibration.clear();
     TOF1_vertical_calibration.clear();
-
+    
     QFile file(calibrationFile);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
         std::cerr << "Failed to read calibration file.\n";
         return;
     }
-
+    
     QTextStream in(&file);
     while(!in.atEnd()){
         QString line = in.readLine();
         process_line(line);
     }
-
+    
     check_calibration();
 }
 
@@ -212,7 +212,7 @@ void BetterReadMAUS::process_line(QString line){
         reading_vertical = true;
     }
     else{
-       // the line gives us some calibration info...
+        // the line gives us some calibration info...
         QStringList list = line.split("\t");
         double delta = list.at(2).toDouble();
         if(reading_TOF0 && reading_horizontal && !reading_TOF1 && !reading_vertical){
@@ -233,68 +233,68 @@ void BetterReadMAUS::process_line(QString line){
 
 void BetterReadMAUS::check_calibration(){
     // print out the calibration constants
-
+    
     std::cerr << "TOF0_horizontal_calibration holds: (slab, delta)\n"
-              << "(0, " << TOF0_horizontal_calibration.at(0) << ")\n"
-              << "(1, " << TOF0_horizontal_calibration.at(1) << ")\n"
-              << "(2, " << TOF0_horizontal_calibration.at(2) << ")\n"
-              << "(3, " << TOF0_horizontal_calibration.at(3) << ")\n"
-              << "(4, " << TOF0_horizontal_calibration.at(4) << ")\n"
-              << "(5, " << TOF0_horizontal_calibration.at(5) << ")\n"
-              << "(6, " << TOF0_horizontal_calibration.at(6) << ")\n"
-              << "(7, " << TOF0_horizontal_calibration.at(7) << ")\n"
-              << "(8, " << TOF0_horizontal_calibration.at(8) << ")\n"
-              << "(9, " << TOF0_horizontal_calibration.at(9) << ")\n";
-
+    << "(0, " << TOF0_horizontal_calibration.at(0) << ")\n"
+    << "(1, " << TOF0_horizontal_calibration.at(1) << ")\n"
+    << "(2, " << TOF0_horizontal_calibration.at(2) << ")\n"
+    << "(3, " << TOF0_horizontal_calibration.at(3) << ")\n"
+    << "(4, " << TOF0_horizontal_calibration.at(4) << ")\n"
+    << "(5, " << TOF0_horizontal_calibration.at(5) << ")\n"
+    << "(6, " << TOF0_horizontal_calibration.at(6) << ")\n"
+    << "(7, " << TOF0_horizontal_calibration.at(7) << ")\n"
+    << "(8, " << TOF0_horizontal_calibration.at(8) << ")\n"
+    << "(9, " << TOF0_horizontal_calibration.at(9) << ")\n";
+    
     std::cerr << "TOF0_vertical_calibration holds: (slab, delta)\n"
-              << "(0, " << TOF0_vertical_calibration.at(0) << ")\n"
-              << "(1, " << TOF0_vertical_calibration.at(1) << ")\n"
-              << "(2, " << TOF0_vertical_calibration.at(2) << ")\n"
-              << "(3, " << TOF0_vertical_calibration.at(3) << ")\n"
-              << "(4, " << TOF0_vertical_calibration.at(4) << ")\n"
-              << "(5, " << TOF0_vertical_calibration.at(5) << ")\n"
-              << "(6, " << TOF0_vertical_calibration.at(6) << ")\n"
-              << "(7, " << TOF0_vertical_calibration.at(7) << ")\n"
-              << "(8, " << TOF0_vertical_calibration.at(8) << ")\n"
-              << "(9, " << TOF0_vertical_calibration.at(9) << ")\n";
-
+    << "(0, " << TOF0_vertical_calibration.at(0) << ")\n"
+    << "(1, " << TOF0_vertical_calibration.at(1) << ")\n"
+    << "(2, " << TOF0_vertical_calibration.at(2) << ")\n"
+    << "(3, " << TOF0_vertical_calibration.at(3) << ")\n"
+    << "(4, " << TOF0_vertical_calibration.at(4) << ")\n"
+    << "(5, " << TOF0_vertical_calibration.at(5) << ")\n"
+    << "(6, " << TOF0_vertical_calibration.at(6) << ")\n"
+    << "(7, " << TOF0_vertical_calibration.at(7) << ")\n"
+    << "(8, " << TOF0_vertical_calibration.at(8) << ")\n"
+    << "(9, " << TOF0_vertical_calibration.at(9) << ")\n";
+    
     std::cerr << "TOF1_horizontal_calibration holds: (slab, delta)\n"
-              << "(0, " << TOF1_horizontal_calibration.at(0) << ")\n"
-              << "(1, " << TOF1_horizontal_calibration.at(1) << ")\n"
-              << "(2, " << TOF1_horizontal_calibration.at(2) << ")\n"
-              << "(3, " << TOF1_horizontal_calibration.at(3) << ")\n"
-              << "(4, " << TOF1_horizontal_calibration.at(4) << ")\n"
-              << "(5, " << TOF1_horizontal_calibration.at(5) << ")\n"
-              << "(6, " << TOF1_horizontal_calibration.at(6) << ")\n";
-
+    << "(0, " << TOF1_horizontal_calibration.at(0) << ")\n"
+    << "(1, " << TOF1_horizontal_calibration.at(1) << ")\n"
+    << "(2, " << TOF1_horizontal_calibration.at(2) << ")\n"
+    << "(3, " << TOF1_horizontal_calibration.at(3) << ")\n"
+    << "(4, " << TOF1_horizontal_calibration.at(4) << ")\n"
+    << "(5, " << TOF1_horizontal_calibration.at(5) << ")\n"
+    << "(6, " << TOF1_horizontal_calibration.at(6) << ")\n";
+    
     std::cerr << "TOF1_vertical_calibration holds: (slab, delta)\n"
-              << "(0, " << TOF1_vertical_calibration.at(0) << ")\n"
-              << "(1, " << TOF1_vertical_calibration.at(1) << ")\n"
-              << "(2, " << TOF1_vertical_calibration.at(2) << ")\n"
-              << "(3, " << TOF1_vertical_calibration.at(3) << ")\n"
-              << "(4, " << TOF1_vertical_calibration.at(4) << ")\n"
-              << "(5, " << TOF1_vertical_calibration.at(5) << ")\n"
-              << "(6, " << TOF1_vertical_calibration.at(6) << ")\n";
+    << "(0, " << TOF1_vertical_calibration.at(0) << ")\n"
+    << "(1, " << TOF1_vertical_calibration.at(1) << ")\n"
+    << "(2, " << TOF1_vertical_calibration.at(2) << ")\n"
+    << "(3, " << TOF1_vertical_calibration.at(3) << ")\n"
+    << "(4, " << TOF1_vertical_calibration.at(4) << ")\n"
+    << "(5, " << TOF1_vertical_calibration.at(5) << ")\n"
+    << "(6, " << TOF1_vertical_calibration.at(6) << ")\n";
 }
 
 void BetterReadMAUS::apply_calibration_TOF0(){
     double horizontal_delta = TOF0_horizontal_calibration.at(TOF0_horizontal_slab);
     double vertical_delta = TOF0_vertical_calibration.at(TOF0_vertical_slab);
-
+    
     double slab_width = 40.0;
     double min_x, max_x, min_y, max_y;
-
+    
     bool good_x = false;
     bool good_y = false;
-
+    
     if(!std::isnan(horizontal_delta)){
         TOF0_x = 0.5*calibrated_c_eff*(TOF0_horizontal_slab_tMinus
-                                   - TOF0_horizontal_slab_tPlus + horizontal_delta);
-
-
+                                       - TOF0_horizontal_slab_tPlus + horizontal_delta);
+        
+        
         min_x = TOF0_xPixel - 0.5*slab_width;
         max_x = TOF0_xPixel + 0.5*slab_width;
-
+        
         if(TOF0_x >= min_x && TOF0_x <= max_x){
             good_x = true;
         }
@@ -307,10 +307,10 @@ void BetterReadMAUS::apply_calibration_TOF0(){
         TOF0_x = TOF0_xPixel;
         good_x = false;
     }
-
+    
     if(!std::isnan(vertical_delta)){
         TOF0_y = 0.5*calibrated_c_eff*(TOF0_vertical_slab_tMinus
-                                   - TOF0_vertical_slab_tPlus + vertical_delta);
+                                       - TOF0_vertical_slab_tPlus + vertical_delta);
         min_y = TOF0_yPixel - 0.5*slab_width;
         max_y = TOF0_yPixel + 0.5*slab_width;
         if(TOF0_y >= min_y && TOF0_y <= max_x){
@@ -325,7 +325,7 @@ void BetterReadMAUS::apply_calibration_TOF0(){
         TOF0_y = TOF0_yPixel;
         good_y = false;
     }
-
+    
     if(good_x && good_y){
         TOF0_goodPMTPosition = 1;
     }
@@ -337,21 +337,21 @@ void BetterReadMAUS::apply_calibration_TOF0(){
 void BetterReadMAUS::apply_calibration_TOF1(){
     double horizontal_delta = TOF1_horizontal_calibration.at(TOF1_horizontal_slab);
     double vertical_delta = TOF1_vertical_calibration.at(TOF1_vertical_slab);
-
+    
     double slab_width = 60.0;
     double min_x, max_x, min_y, max_y;
-
+    
     bool good_x = false;
     bool good_y = false;
-
+    
     if(!std::isnan(horizontal_delta)){
         TOF1_x = 0.5*calibrated_c_eff*(TOF1_horizontal_slab_tMinus
-                                   - TOF1_horizontal_slab_tPlus + horizontal_delta);
-
-
+                                       - TOF1_horizontal_slab_tPlus + horizontal_delta);
+        
+        
         min_x = TOF1_xPixel - 0.5*slab_width;
         max_x = TOF1_xPixel + 0.5*slab_width;
-
+        
         if(TOF1_x >= min_x && TOF1_x <= max_x){
             good_x = true;
         }
@@ -364,10 +364,10 @@ void BetterReadMAUS::apply_calibration_TOF1(){
         TOF1_x = TOF1_xPixel;
         good_x = false;
     }
-
+    
     if(!std::isnan(vertical_delta)){
         TOF1_y = 0.5*calibrated_c_eff*(TOF1_vertical_slab_tMinus
-                                   - TOF1_vertical_slab_tPlus + vertical_delta);
+                                       - TOF1_vertical_slab_tPlus + vertical_delta);
         min_y = TOF1_yPixel - 0.5*slab_width;
         max_y = TOF1_yPixel + 0.5*slab_width;
         if(TOF1_y >= min_y && TOF1_y <= max_x){
@@ -382,7 +382,7 @@ void BetterReadMAUS::apply_calibration_TOF1(){
         TOF1_y = TOF1_yPixel;
         good_y = false;
     }
-
+    
     if(good_x && good_y){
         TOF1_goodPMTPosition = 1;
     }
@@ -398,7 +398,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     
     outputTree->Branch("SpillNumber", &spill_number, "SpillNumber/I");
     outputTree->Branch("ReconstructedEventNumber", &reconstructed_event_number, "ReconstructedEventNumber/I");
-
+    
     outputTree->Branch("TOF0_x", &TOF0_x, "TOF0_x/D");
     outputTree->Branch("TOF0_y", &TOF0_y, "TOF0_y/D");
     outputTree->Branch("TOF0_z", &TOF0_z, "TOF0_z/D");
@@ -407,8 +407,8 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TOF0_py", &TOF0_py, "TOF0_py/D");
     outputTree->Branch("TOF0_pz", &TOF0_pz, "TOF0_pz/D");
     outputTree->Branch("TOF0_p", &TOF0_p, "TOF0_p/D");
-
-
+    
+    
     outputTree->Branch("TOF0_xPixel", &TOF0_xPixel, "TOF0_xPixel/D");
     outputTree->Branch("TOF0_yPixel", &TOF0_yPixel, "TOF0_yPixel/D");
     outputTree->Branch("TOF0_hSlab_tMinus", &TOF0_horizontal_slab_tMinus, "TOF0_hSlab_tMinus/D");
@@ -417,10 +417,10 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TOF0_vSlab_tPlus", &TOF0_vertical_slab_tPlus, "TOF0_vSlab_tPlus/D");
     outputTree->Branch("TOF0_hSlab", &TOF0_horizontal_slab, "TOF0_hSlab/I");
     outputTree->Branch("TOF0_vSlab", &TOF0_vertical_slab, "TOF0_vSlab/I");
-
+    
     outputTree->Branch("TOF0_xPrime", &TOF0_xPrime, "TOF0_xPrime/D");
     outputTree->Branch("TOF0_yPrime", &TOF0_yPrime, "TOF0_yPrime/D");
-
+    
     outputTree->Branch("TOF1_x", &TOF1_x, "TOF1_x/D");
     outputTree->Branch("TOF1_xPixel", &TOF1_xPixel, "TOF1_xPixel/D");
     outputTree->Branch("TOF1_y", &TOF1_y, "TOF1_y/D");
@@ -439,7 +439,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TOF1_p", &TOF1_p, "TOF1_p/D");
     outputTree->Branch("TOF1_xPrime", &TOF1_xPrime, "TOF1_xPrime/D");
     outputTree->Branch("TOF1_yPrime", &TOF1_yPrime, "TOF1_yPrime/D");
-
+    
     outputTree->Branch("TKU_s1_x", &TKU_plane1_x, "TKU_s1_x/D"); // station 1
     outputTree->Branch("TKU_s1_y", &TKU_plane1_y, "TKU_s1_y/D");
     outputTree->Branch("TKU_s1_z", &TKU_plane1_z, "TKU_s1_z/D");
@@ -453,7 +453,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s1_px_error", &TKU_plane1_px_error, "TKU_s1_px_error/D");
     outputTree->Branch("TKU_s1_py_error", &TKU_plane1_py_error, "TKU_s1_py_error/D");
     outputTree->Branch("TKU_s1_kappa_error", &TKU_plane1_kappa_error, "TKU_s1_kappa_error/D");
-
+    
     outputTree->Branch("TKU_s2_x", &TKU_plane2_x, "TKU_s2_x/D"); // station 1
     outputTree->Branch("TKU_s2_y", &TKU_plane2_y, "TKU_s2_y/D");
     outputTree->Branch("TKU_s2_z", &TKU_plane2_z, "TKU_s2_z/D");
@@ -467,7 +467,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s2_px_error", &TKU_plane2_px_error, "TKU_s2_px_error/D");
     outputTree->Branch("TKU_s2_py_error", &TKU_plane2_py_error, "TKU_s2_py_error/D");
     outputTree->Branch("TKU_s2_kappa_error", &TKU_plane2_kappa_error, "TKU_s2_kappa_error/D");
-
+    
     outputTree->Branch("TKU_s3_x", &TKU_plane3_x, "TKU_s3_x/D"); // station 1
     outputTree->Branch("TKU_s3_y", &TKU_plane3_y, "TKU_s3_y/D");
     outputTree->Branch("TKU_s3_z", &TKU_plane3_z, "TKU_s3_z/D");
@@ -481,7 +481,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s3_px_error", &TKU_plane3_px_error, "TKU_s3_px_error/D");
     outputTree->Branch("TKU_s3_py_error", &TKU_plane3_py_error, "TKU_s3_py_error/D");
     outputTree->Branch("TKU_s3_kappa_error", &TKU_plane3_kappa_error, "TKU_s3_kappa_error/D");
-
+    
     outputTree->Branch("TKU_s4_x", &TKU_plane4_x, "TKU_s4_x/D"); // station 1
     outputTree->Branch("TKU_s4_y", &TKU_plane4_y, "TKU_s4_y/D");
     outputTree->Branch("TKU_s4_z", &TKU_plane4_z, "TKU_s4_z/D");
@@ -495,7 +495,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s4_px_error", &TKU_plane4_px_error, "TKU_s4_px_error/D");
     outputTree->Branch("TKU_s4_py_error", &TKU_plane4_py_error, "TKU_s4_py_error/D");
     outputTree->Branch("TKU_s4_kappa_error", &TKU_plane4_kappa_error, "TKU_s4_kappa_error/D");
-
+    
     outputTree->Branch("TKU_s5_x", &TKU_plane5_x, "TKU_s5_x/D"); // station 1
     outputTree->Branch("TKU_s5_y", &TKU_plane5_y, "TKU_s5_y/D");
     outputTree->Branch("TKU_s5_z", &TKU_plane5_z, "TKU_s5_z/D");
@@ -509,7 +509,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s5_px_error", &TKU_plane5_px_error, "TKU_s5_px_error/D");
     outputTree->Branch("TKU_s5_py_error", &TKU_plane5_py_error, "TKU_s5_py_error/D");
     outputTree->Branch("TKU_s5_kappa_error", &TKU_plane5_kappa_error, "TKU_s5_kappa_error/D");
-
+    
     outputTree->Branch("TKU_PValue", &TKU_Pvalue, "TKU_PValue/D");
     outputTree->Branch("TKU_chiSquare", &TKU_chiSquare, "TKU_chiSquare/D");
     outputTree->Branch("TKU_pattRec_r", &TKU_patternRecognition_R, "TKU_pattRec_r/D");
@@ -520,39 +520,46 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_mass", &particle_mass, "TKU_mass/D");
     outputTree->Branch("TKU_station_hits", &TKU_station_hits, "TKU_station_hits/I");
     outputTree->Branch("TKU_charge", &TKU_charge, "TKU_charge/I");
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
     // Rogers' particle tracking
     if(!rogersTrackingFileName.isEmpty()){
-        outputTree->Branch("rogers_tracking_tof01", &rogers_tof01, "rogers_tracking_tof01/D");
-        outputTree->Branch("rogers_tracking_x_tof1", &rogers_x_tof1, "rogers_tracking_x_tof1/D");
-        outputTree->Branch("rogers_tracking_y_tof1", &rogers_y_tof1, "rogers_tracking_y_tof1/D");
-        outputTree->Branch("rogers_tracking_px_tof1", &rogers_px_tof1, "rogers_tracking_px_tof1/D");
-        outputTree->Branch("rogers_tracking_py_tof1", &rogers_py_tof1, "rogers_tracking_py_tof1/D");
-        outputTree->Branch("rogers_tracking_pz_tof1", &rogers_pz_tof1, "rogers_tracking_pz_tof1/D");
-
+        outputTree->Branch("rogers_tracking_tof01_us", &rogers_tof01_us, "rogers_tracking_tof01_us/D");
+        outputTree->Branch("rogers_tracking_x_tof1_us", &rogers_x_tof1_us, "rogers_tracking_x_tof1_us/D");
+        outputTree->Branch("rogers_tracking_y_tof1_us", &rogers_y_tof1_us, "rogers_tracking_y_tof1_us/D");
+        outputTree->Branch("rogers_tracking_px_tof1_us", &rogers_px_tof1_us, "rogers_tracking_px_tof1_us/D");
+        outputTree->Branch("rogers_tracking_py_tof1_us", &rogers_py_tof1_us, "rogers_tracking_py_tof1_us/D");
+        outputTree->Branch("rogers_tracking_pz_tof1_us", &rogers_pz_tof1_us, "rogers_tracking_pz_tof1_us/D");
+        
+        outputTree->Branch("rogers_tracking_tof01_ds", &rogers_tof01_ds, "rogers_tracking_tof01_ds/D");
+        outputTree->Branch("rogers_tracking_x_tof1_ds", &rogers_x_tof1_ds, "rogers_tracking_x_tof1_ds/D");
+        outputTree->Branch("rogers_tracking_y_tof1_ds", &rogers_y_tof1_ds, "rogers_tracking_y_tof1_ds/D");
+        outputTree->Branch("rogers_tracking_px_tof1_ds", &rogers_px_tof1_ds, "rogers_tracking_px_tof1_ds/D");
+        outputTree->Branch("rogers_tracking_py_tof1_ds", &rogers_py_tof1_ds, "rogers_tracking_py_tof1_ds/D");
+        outputTree->Branch("rogers_tracking_pz_tof1_ds", &rogers_pz_tof1_ds, "rogers_tracking_pz_tof1_ds/D");
+        
         outputTree->Branch("rogers_tracking_x_diffuser1", &rogers_x_diffuser1, "rogers_tracking_x_diffuser1/D");
         outputTree->Branch("rogers_tracking_y_diffuser1", &rogers_y_diffuser1, "rogers_tracking_y_diffuser1/D");
         outputTree->Branch("rogers_tracking_z_diffuser1", &rogers_z_diffuser1, "rogers_tracking_z_diffuser1/D");
         outputTree->Branch("rogers_tracking_px_diffuser1", &rogers_px_diffuser1, "rogers_tracking_px_diffuser1/D");
         outputTree->Branch("rogers_tracking_py_diffuser1", &rogers_py_diffuser1, "rogers_tracking_py_diffuser1/D");
         outputTree->Branch("rogers_tracking_pz_diffuser1", &rogers_pz_diffuser1, "rogers_tracking_pz_diffuser1/D");
-
+        
         outputTree->Branch("rogers_tracking_x_diffuser2", &rogers_x_diffuser2, "rogers_tracking_x_diffuser2/D");
         outputTree->Branch("rogers_tracking_y_diffuser2", &rogers_y_diffuser2, "rogers_tracking_y_diffuser2/D");
         outputTree->Branch("rogers_tracking_z_diffuser2", &rogers_z_diffuser2, "rogers_tracking_z_diffuser2/D");
         outputTree->Branch("rogers_tracking_px_diffuser2", &rogers_px_diffuser2, "rogers_tracking_px_diffuser2/D");
         outputTree->Branch("rogers_tracking_py_diffuser2", &rogers_py_diffuser2, "rogers_tracking_py_diffuser2/D");
         outputTree->Branch("rogers_tracking_pz_diffuser2", &rogers_pz_diffuser2, "rogers_tracking_pz_diffuser2/D");
-
-
+        
+        
         outputTree->Branch("rogers_tracking_x_diffuser3", &rogers_x_diffuser3, "rogers_tracking_x_diffuser3/D");
         outputTree->Branch("rogers_tracking_y_diffuser3", &rogers_y_diffuser3, "rogers_tracking_y_diffuser3/D");
         outputTree->Branch("rogers_tracking_z_diffuser3", &rogers_z_diffuser3, "rogers_tracking_z_diffuser3/D");
@@ -560,7 +567,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
         outputTree->Branch("rogers_tracking_py_diffuser3", &rogers_py_diffuser3, "rogers_tracking_py_diffuser3/D");
         outputTree->Branch("rogers_tracking_pz_diffuser3", &rogers_pz_diffuser3, "rogers_tracking_pz_diffuser3/D");
     }
-
+    
     /* cuts: these will be 0 or 1 depending on whether the fail (0) or pass (1) the cut
      *
      *    cut_TOF0_goodPMTPosition (aka TOF0_goodPMTPosition), does this particle go through slabs that have PMT-position calibrations
@@ -579,7 +586,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("cut_TKU_PValue", &goodPValue, "cut_TKU_PValue/I");
     //outputTree->Branch("cut_muon_mass", &good_mass_cut, "cut_muon_mass/I");
     outputTree->Branch("cut_momentum_loss", &good_momentum_loss_cut, "cut_momentum_loss/I");
-
+    
     if(!rogersTrackingFileName.isEmpty()){
         outputTree->Branch("cut_diffuser", &cut_diffuser, "cut_diffuser/I");
     }
@@ -607,28 +614,37 @@ void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString cali
     file_line = 0;
     readCalibrationFile(calibrationConstantsFile);
     define_root_file(fileToSaveAs);
-
+    
     MAUS::Data data;
     irstream infile(fileToOpen.toStdString().c_str(), "Spill");
-
+    
+    int count = 0;
+    
+    last_event_number = 0;
+    mc_spill_counter = 1;
+    mc_spills = false;
+    
     // iterate over events:
     while(infile >> readEvent != NULL){
         infile >> branchName("data") >> data;
         spill = data.GetSpill();
-
+        
+        std::cout << count << "\n";
+        count++;
+        
         if(spill != NULL && spill->GetDaqEventType() == "physics_event"){
             // Found a spill that contains data. Iterate over all its events...
-
+            
             readParticleEvent();
         }
     }
-
+    
     outputFile->cd();
     outputTree->Write();
     outputFile->Write();
-
+    
     outputFile->Close();
-
+    
 }
 
 
@@ -637,45 +653,59 @@ void BetterReadMAUS::readParticleEvent(){
         reset_particle_variables();
         spill_number = spill->GetSpillNumber();
         reconstructed_event_number = i;
-
+        
         std::cout << "Reading spill " << spill_number << ", event " << reconstructed_event_number << "\n";
-
+        
+        // safety check versus MC files all having spill == 1:
+        if(spill_number == 1 && reconstructed_event_number < last_event_number){
+            mc_spill_counter += 1;
+            if(!mc_spills){
+                // first time detecting that we're actually looking at a funky MC spill/event numbering
+                mc_spills = true;
+            }
+        }
+        last_event_number = reconstructed_event_number;
+        if(mc_spills){
+            spill_number = mc_spill_counter; // set spill number to a more appropriate count
+            std::cout << "....Adjusting spill number to " << spill_number << ", with event " << reconstructed_event_number << "\n";
+        }
+        
         tof_event = (*spill->GetReconEvents())[i]->GetTOFEvent();
         scifi_event = (*spill->GetReconEvents())[i]->GetSciFiEvent();
-
+        
         if(tof_event != NULL){
             // there are hits at TOFs, estimate pz from them
             particle_at_TOF0();
             particle_at_TOF1();
         }
-
+        
         if(scifi_event != NULL){
             particle_at_tracker(); // get tracker info
         }
-
+        
         calculate_particle_mass();
         good_momentum_loss_cut = check_momentum_loss();
-
+        
         if(TOF0_goodPMTPosition == 1 && TOF1_goodPMTPosition == 1){
             // reconstruct momentum at TOFs
             reconstruct_TOF_momentum();
         }
-
+        
         if(TOF0_goodPMTPosition == 1 && TOF1_goodPMTPosition == 1
-                && TKU_goodParticle ==1){
+           && TKU_goodParticle ==1){
             all_detectors_hit = 1;
         }
         else{
             all_detectors_hit = 0;
         }
-
+        
         if(particle_in_mass_range()){
             good_mass_cut = 1;
         }
         else{
             good_mass_cut = 0;
         }
-
+        
         /*
          * Particles pass ALL cuts if:
          *      -- all_detectors_hit = 1 (TOF0_goodPMTPosition, TOF1_goodPMTPosition, TKU_goodParticle = 1)
@@ -695,11 +725,11 @@ void BetterReadMAUS::readParticleEvent(){
         else{
             goodParticle = 0;
         }
-
+        
         if(all_detectors_hit == 1 && !rogersTrackingFileName.isEmpty())
-            ReadRogersExtrapolation(spill_number, reconstructed_event_number);
-
-
+        ReadRogersExtrapolation(spill_number, reconstructed_event_number);
+        
+        
         outputTree->Fill();
     }
 }
@@ -717,54 +747,54 @@ void BetterReadMAUS::particle_at_TOF0(){
      * that spacepoint.  Use those slab hits to improve the particles position
      * information.
      */
-
+    
     MAUS::TOFEventSlabHit slab_hits = tof_event->GetTOFEventSlabHit();
     MAUS::TOFEventSpacePoint space_points = tof_event->GetTOFEventSpacePoint();
-
+    
     MAUS::TOFSlabHit tof0_slab_hits;
     MAUS::TOFSpacePoint tof0_space_points;
-
-
+    
+    
     int horizontalHit, verticalHit;
-
-
-
+    
+    
+    
     reset_TOF0_variables();  // each new space point should be a new set of slab hits
     horizontalHit = -1;
     verticalHit = -1;
-
+    
     // 1. Loop over TOF0 space points:
     //for(size_t i = 0; i < space_points.GetTOF0SpacePointArray().size(); ++i){
     if(space_points.GetTOF0SpacePointArray().size() >=1){
         reset_TOF0_variables();  // each new space point should be a new set of slab hits
-
+        
         if(space_points.GetTOF0SpacePointArray().size() == 1){
             only_hit_at_TOF0 = 1;
         }
         else{
             only_hit_at_TOF0 = 0;
         }
-
+        
         horizontalHit = -1;
         verticalHit = -1;
-
+        
         //tof0_space_points = space_points.GetTOF0SpacePointArray()[i];
         tof0_space_points = space_points.GetTOF0SpacePointArray()[0]; // get first spacepoint
-
+        
         TOF0_horizontal_slab = tof0_space_points.GetHorizSlab(); // returns slabs oriented horizontally
         TOF0_vertical_slab = tof0_space_points.GetVertSlab();   // returns slabs oriented vertically
-
+        
         TOF0_xPixel = tof0_space_points.GetGlobalPosX();
         TOF0_yPixel = tof0_space_points.GetGlobalPosY();
-
+        
         TOF0_z = beamlineTracking_TOF0_zPosition;
-
+        
         TOF0_hitTime = tof0_space_points.GetTime();
-
+        
         // 2. Loop over slab hits and look for matches:
         for(size_t j = 0; j < slab_hits.GetTOF0SlabHitArray().size(); ++j){
             tof0_slab_hits = slab_hits.GetTOF0SlabHitArray()[j];
-
+            
             if(tof0_slab_hits.IsHorizontal()){
                 // horizontal slab hit
                 horizontalHit = tof0_slab_hits.GetSlab();
@@ -779,7 +809,7 @@ void BetterReadMAUS::particle_at_TOF0(){
             else{
                 std::cerr << "Warning: Unusual plane hits at TOF0. Proceed with caution.\n";
             }
-
+            
             apply_calibration_TOF0();
         }
     }
@@ -794,55 +824,55 @@ void BetterReadMAUS::particle_at_TOF1(){
      * that spacepoint.  Use those slab hits to improve the particles position
      * information.
      */
-
+    
     MAUS::TOFEventSlabHit slab_hits = tof_event->GetTOFEventSlabHit();
     MAUS::TOFEventSpacePoint space_points = tof_event->GetTOFEventSpacePoint();
-
+    
     MAUS::TOFSlabHit tof1_slab_hits;
     MAUS::TOFSpacePoint tof1_space_points;
-
-
+    
+    
     int horizontalHit, verticalHit;
-  //  bool good_particle;
-
-
+    //  bool good_particle;
+    
+    
     // 1. Loop over TOF1 space points:
-
-  //  for(size_t i = 0; i < space_points.GetTOF1SpacePointArray().size(); ++i){
-        reset_TOF1_variables();  // each new space point should be a new set of slab hits
-        horizontalHit = -1;
-        verticalHit = -1;
-
+    
+    //  for(size_t i = 0; i < space_points.GetTOF1SpacePointArray().size(); ++i){
+    reset_TOF1_variables();  // each new space point should be a new set of slab hits
+    horizontalHit = -1;
+    verticalHit = -1;
+    
     if(space_points.GetTOF1SpacePointArray().size() >= 1){
         reset_TOF1_variables();  // each new space point should be a new set of slab hits
         horizontalHit = -1;
         verticalHit = -1;
-
+        
         if(space_points.GetTOF1SpacePointArray().size() == 1){
             only_hit_at_TOF1 = 1;
         }
         else{
             only_hit_at_TOF1 = 0;
         }
-
-
+        
+        
         //tof1_space_points = space_points.GetTOF1SpacePointArray()[i];
         tof1_space_points = space_points.GetTOF1SpacePointArray()[0]; // get the first spacepoint
-
+        
         TOF1_horizontal_slab = tof1_space_points.GetHorizSlab(); // returns slabs oriented horizontally
         TOF1_vertical_slab = tof1_space_points.GetVertSlab();   // returns slabs oriented vertically
-
+        
         TOF1_xPixel = tof1_space_points.GetGlobalPosX();
         TOF1_yPixel = tof1_space_points.GetGlobalPosY();
-
+        
         TOF1_z = beamlineTracking_TOF1_zPosition;
-
+        
         TOF1_hitTime = tof1_space_points.GetTime();
-
+        
         // 2. Loop over slab hits and look for matches:
         for(size_t j = 0; j < slab_hits.GetTOF1SlabHitArray().size(); ++j){
             tof1_slab_hits = slab_hits.GetTOF1SlabHitArray()[j];
-
+            
             if(tof1_slab_hits.IsHorizontal()){
                 // horizontal slab hit
                 horizontalHit = tof1_slab_hits.GetSlab();
@@ -857,7 +887,7 @@ void BetterReadMAUS::particle_at_TOF1(){
             else{
                 std::cerr << "Warning: Unusual plane hits at TOF1. Proceed with caution.\n";
             }
-
+            
             apply_calibration_TOF1();
         }
     }
@@ -868,61 +898,61 @@ void BetterReadMAUS::particle_at_TOF1(){
 void BetterReadMAUS::particle_at_tracker(){
     int tracker, station;
     MAUS::ThreeVector position;
-
+    
     std::vector<MAUS::SciFiTrack*> tracks = scifi_event->scifitracks();
     std::vector<MAUS::SciFiHelicalPRTrack*> pr_tracks = scifi_event->helicalprtracks();
-
+    
     std::vector<MAUS::SciFiTrack*>::iterator track_iter;
     std::vector<MAUS::SciFiHelicalPRTrack*>::iterator pr_track_iter;
-
+    
     for(pr_track_iter = pr_tracks.begin(); pr_track_iter != pr_tracks.end(); ++pr_track_iter){
         MAUS::SciFiHelicalPRTrack* pr_track = (*pr_track_iter);
-
+        
         if(pr_track->get_tracker() == 0){
             TKU_patternRecognition_R = pr_track->get_R();
             TKU_patternRecognition_dipAngle = pr_track->get_dsdz();  //pr_track->get_phi0();
             TKU_patternRecognition_x0 = pr_track->get_circle_x0();
             TKU_patternRecognition_y0 = pr_track->get_circle_y0();
-
+            
             TKU_station_hits = pr_track->get_num_points();
         }
     }
-
+    
     if(tracks.size() == 1){
         only_track_in_TKU = 1;
     }
     else{
         only_track_in_TKU = 0;
     }
-
+    
     //for(track_iter = tracks.begin(); track_iter != tracks.end(); ++track_iter){ // use if looking at all tracks
     if(tracks.size() != 0){ // use if only want to take the first track
         track_iter = tracks.begin();
         std::vector<MAUS::SciFiTrackPoint*> track_points = (*track_iter)->scifitrackpoints();
         std::vector<MAUS::SciFiTrackPoint*>::iterator track_point_iter;
-
+        
         TKU_Pvalue = (*track_iter)->P_value();
         TKU_chiSquare = (*track_iter)->chi2();
         TKU_charge = (*track_iter)->charge();
-
+        
         for(track_point_iter = track_points.begin(); track_point_iter != track_points.end(); ++track_point_iter){
             MAUS::SciFiTrackPoint* point = (*track_point_iter);
             tracker = point->tracker();
             station = point->station();
             position = point->pos();
-
+            
             if(tracker == 0){
                 if(point->station() == 1){
                     TKU_plane1_x = point->pos().x();
                     TKU_plane1_y = point->pos().y();
                     TKU_plane1_z = point->pos().z();
-
+                    
                     TKU_plane1_px = point->mom().x();
                     TKU_plane1_py = point->mom().y();
                     TKU_plane1_pz = point->mom().z();
                     TKU_plane1_p = TMath::Sqrt(TKU_plane1_px*TKU_plane1_px
-                                             + TKU_plane1_py*TKU_plane1_py
-                                             + TKU_plane1_pz*TKU_plane1_pz);
+                                               + TKU_plane1_py*TKU_plane1_py
+                                               + TKU_plane1_pz*TKU_plane1_pz);
                     
                     TKU_plane1_pull = point->pull();
                     
@@ -937,13 +967,13 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane2_x = point->pos().x();
                     TKU_plane2_y = point->pos().y();
                     TKU_plane2_z = point->pos().z();
-
+                    
                     TKU_plane2_px = point->mom().x();
                     TKU_plane2_py = point->mom().y();
                     TKU_plane2_pz = point->mom().z();
                     TKU_plane2_p = TMath::Sqrt(TKU_plane2_px*TKU_plane2_px
-                                             + TKU_plane2_py*TKU_plane2_py
-                                             + TKU_plane2_pz*TKU_plane2_pz);
+                                               + TKU_plane2_py*TKU_plane2_py
+                                               + TKU_plane2_pz*TKU_plane2_pz);
                     
                     TKU_plane2_pull = point->pull();
                     
@@ -958,13 +988,13 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane3_x = point->pos().x();
                     TKU_plane3_y = point->pos().y();
                     TKU_plane3_z = point->pos().z();
-
+                    
                     TKU_plane3_px = point->mom().x();
                     TKU_plane3_py = point->mom().y();
                     TKU_plane3_pz = point->mom().z();
                     TKU_plane3_p = TMath::Sqrt(TKU_plane3_px*TKU_plane3_px
-                                             + TKU_plane3_py*TKU_plane3_py
-                                             + TKU_plane3_pz*TKU_plane3_pz);
+                                               + TKU_plane3_py*TKU_plane3_py
+                                               + TKU_plane3_pz*TKU_plane3_pz);
                     
                     TKU_plane3_pull = point->pull();
                     
@@ -979,13 +1009,13 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane4_x = point->pos().x();
                     TKU_plane4_y = point->pos().y();
                     TKU_plane4_z = point->pos().z();
-
+                    
                     TKU_plane4_px = point->mom().x();
                     TKU_plane4_py = point->mom().y();
                     TKU_plane4_pz = point->mom().z();
                     TKU_plane4_p = TMath::Sqrt(TKU_plane4_px*TKU_plane4_px
-                                             + TKU_plane4_py*TKU_plane4_py
-                                             + TKU_plane4_pz*TKU_plane4_pz);
+                                               + TKU_plane4_py*TKU_plane4_py
+                                               + TKU_plane4_pz*TKU_plane4_pz);
                     
                     TKU_plane4_pull = point->pull();
                     
@@ -1000,13 +1030,13 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane5_x = point->pos().x();
                     TKU_plane5_y = point->pos().y();
                     TKU_plane5_z = point->pos().z();
-
+                    
                     TKU_plane5_px = point->mom().x();
                     TKU_plane5_py = point->mom().y();
                     TKU_plane5_pz = point->mom().z();
                     TKU_plane5_p = TMath::Sqrt(TKU_plane5_px*TKU_plane5_px
-                                             + TKU_plane5_py*TKU_plane5_py
-                                             + TKU_plane5_pz*TKU_plane5_pz);
+                                               + TKU_plane5_py*TKU_plane5_py
+                                               + TKU_plane5_pz*TKU_plane5_pz);
                     
                     TKU_plane5_pull = point->pull();
                     
@@ -1026,14 +1056,14 @@ void BetterReadMAUS::particle_at_tracker(){
     else{
         TKU_goodParticle = 0;
     }
-
+    
     if(TKU_Pvalue >= 0.01){
         goodPValue = 1;
     }
     else{
         goodPValue = 0;
     }
-
+    
 }
 
 
@@ -1053,7 +1083,7 @@ void BetterReadMAUS::SetBeamlineParameters(double min_tof, double max_tof, doubl
     beamlineTracking_q9_zPosition = q9_zPosition*u.mm();
     beamlineTracking_TOF0_zPosition = tof0_zPosition*u.mm();
     beamlineTracking_TOF1_zPosition = tof1_zPosition*u.mm();
-
+    
     beamline = new StepIBeamLine(false);
     beamline->SetQ7(beamlineTracking_q7_current, beamlineTracking_q7_zPosition);
     beamline->SetQ8(beamlineTracking_q8_current, beamlineTracking_q8_zPosition);
@@ -1061,7 +1091,7 @@ void BetterReadMAUS::SetBeamlineParameters(double min_tof, double max_tof, doubl
     beamline->SetTOF0(beamlineTracking_TOF0_zPosition);
     beamline->SetTOF1(beamlineTracking_TOF1_zPosition);
     beamline->Initialise();
-
+    
     tracking = new StepITracking("run7469", beamline);
 }
 
@@ -1071,16 +1101,16 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
     double L = beamlineTracking_TOF1_zPosition - beamlineTracking_TOF0_zPosition;
     double mu_mass = 105.658367*u.MeV();
     double dt_cal;
-
+    
     if(dt >= beamlineTracking_min_tof && dt <= beamlineTracking_max_tof){
         goodTimeOfFlight = 1;
-
+        
         dt_cal = dt - beamlineTracking_data_ele_tof + (L + beamlineTracking_sim_ele_path)/u.c_light();
-
+        
         //std::cout << "About to reconstruct a TOF event with: "
         //          << "dt = " << dt_cal << ", (x0, y0, x1, y1) = ("
         //          << TOF0_x << ", " << TOF0_y << ", " << TOF1_x << ", " << TOF1_y << ")\n";
-
+        
         tracking->ReconstructEvent(dt_cal, TOF0_x, TOF1_x, TOF0_y, TOF1_y, mu_mass);
     }
     else{
@@ -1088,29 +1118,29 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
         dt_cal = dt - beamlineTracking_data_ele_tof + (L + beamlineTracking_sim_ele_path)/u.c_light();
         tracking->Bad(dt_cal, TOF0_x, TOF1_x, TOF0_y, TOF1_y, mu_mass);
     }
-
+    
     result = tracking->Result();
     TOF0_xPrime = result.value("ax0");
     TOF0_yPrime = result.value("ay0");
-
+    
     TOF1_xPrime = result.value("ax1");
     TOF1_yPrime = result.value("ay1");
-
+    
     TOF1_pz = result.value("P");
     TOF0_pz = TOF1_pz + result.value("dP"); // made a momentum correction based on air...
-
+    
     //std::cout << "Pz at TOF1 = " << TOF1_pz << ", TOF0 = " << TOF0_pz << ", dPz = " << result.value("dP") << "\n";
-
+    
     TOF0_px = TOF0_xPrime * TOF0_pz;
     TOF0_py = TOF0_yPrime * TOF0_pz;
     TOF1_px = TOF1_xPrime * TOF1_pz;
     TOF1_py = TOF1_yPrime * TOF1_pz;
-
+    
     TOF0_p = TMath::Sqrt(TOF0_px*TOF0_px + TOF0_py*TOF0_py + TOF0_pz*TOF0_pz);
     TOF1_p = TMath::Sqrt(TOF1_px*TOF1_px + TOF1_py*TOF1_py + TOF1_pz*TOF1_pz);
-
+    
     goodRaynerReconstruction = result.value("good");
-
+    
     //std::cout << ".... reconstruction returned good = " << goodRaynerReconstruction << "\n";
 }
 
@@ -1123,9 +1153,9 @@ void BetterReadMAUS::calculate_particle_mass(){
     double t_electron = 25.48;
     double beta = t_electron/t_mu;
     double gamma = 1.0/TMath::Sqrt(1.0 - beta*beta);
-
+    
     double p_track = TKU_plane1_p;
-
+    
     particle_mass = (p_track + p_corr) / (beta * gamma);
     //std::cout << "p_track = " << p_track << ", beta = "  << beta
     //          << ", gamma = " << gamma << ", m_calc =  " << particle_mass << "\n";
@@ -1148,24 +1178,24 @@ bool BetterReadMAUS::check_momentum_loss(){
     double m = 105.6583715;
     momentum_loss_cut_lower_limit = 5.0;
     momentum_loss_cut_upper_limit = 43.4;//35.0;
-
+    
     bool passes = false;
-
-
+    
+    
     double tof = TOF1_hitTime - TOF0_hitTime;
-
+    
     double beta_tof = 25.48/tof;
     double gamma_tof = 1.0/TMath::Sqrt(1.0 - beta_tof*beta_tof);
     double beta_gamma_tof = beta_tof*gamma_tof;
-
+    
     double min_cut = (TKU_plane1_p + momentum_loss_cut_lower_limit) / m;
     double max_cut = (TKU_plane1_p + momentum_loss_cut_upper_limit) / m;
-
-
+    
+    
     if(beta_gamma_tof >= min_cut && beta_gamma_tof <= max_cut){
         passes = true;
     }
-
+    
     return passes;
 }
 
@@ -1180,49 +1210,56 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
      *
      * NB: This file can be for either DATA or MONTE CARLO.
      */
-
+    
     //std::cout << "Reading Chris Rogers extrapolated tracks from file " << rogersTrackingFileName.toStdString() << "...";
-
-    rogers_z_diffuser1 = 13630.0; // z of most downstream plane of diffuser
-    rogers_z_diffuser2 = 13679.0;  // z of the middle of the diffuser
-    rogers_z_diffuser3 = 13728.0;
-
+    
+    rogers_z_diffuser1 = 13961.7; // z of most upstream plane of diffuser
+    rogers_z_diffuser2 = 13942.4;  // z of the middle of the diffuser
+    rogers_z_diffuser3 = 13963.0;
+    
     QFile file(rogersTrackingFileName);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
         std::cerr << "Failed to read tracking file.\n";
         return;
     }
-
+    
     QTextStream in(&file);
     in.seek(file_line);
-    bool gotTOF1 = false;
+    bool gotTOF1_us = false;
+    bool gotTOF1_ds = false;
     bool gotDiffuser1 = false;
     bool gotDiffuser2 = false;
     bool gotDiffuser3 = false;
     bool done = false;
-
+    
     while(!done && !in.atEnd()){
         QString line = in.readLine();
-
+        
         if(!line.contains("#")){
-           // the line gives us some tracking info...
+            // the line gives us some tracking info...
             QStringList list = line.split(" ", QString::SkipEmptyParts);
-
+            
             // is this the spill and event we're looking for?
             if(list.at(0).toInt() == some_spill && list.at(1).toInt() == some_event){
                 // now we've got one of four lines associated with the (spill, event) of interest
-
-                if(list.at(5).toDouble() != rogers_z_diffuser1
-                        && list.at(5).toDouble() != rogers_z_diffuser2
-                        && list.at(5).toDouble() != rogers_z_diffuser3){
+                if(list.at(5).toDouble() == 12904.4){
+                    gotTOF1_us = true;
+                    rogers_tof01_us = list.at(2).toDouble();
+                    rogers_x_tof1_us = list.at(3).toDouble();
+                    rogers_y_tof1_us = list.at(4).toDouble();
+                    rogers_px_tof1_us = list.at(6).toDouble();
+                    rogers_py_tof1_us = list.at(7).toDouble();
+                    rogers_pz_tof1_us = list.at(8).toDouble();
+                }
+                else if(list.at(5).toDouble() == 12954.4){
                     // this is TOF1 tracked data
-                    gotTOF1 = true;
-                    rogers_tof01 = list.at(2).toDouble();
-                    rogers_x_tof1 = list.at(3).toDouble();
-                    rogers_y_tof1 = list.at(4).toDouble();
-                    rogers_px_tof1 = list.at(6).toDouble();
-                    rogers_py_tof1 = list.at(7).toDouble();
-                    rogers_pz_tof1 = list.at(8).toDouble();
+                    gotTOF1_ds = true;
+                    rogers_tof01_ds = list.at(2).toDouble();
+                    rogers_x_tof1_ds = list.at(3).toDouble();
+                    rogers_y_tof1_ds = list.at(4).toDouble();
+                    rogers_px_tof1_ds = list.at(6).toDouble();
+                    rogers_py_tof1_ds = list.at(7).toDouble();
+                    rogers_pz_tof1_ds = list.at(8).toDouble();
                 }
                 else if(list.at(5).toDouble() == rogers_z_diffuser1){
                     gotDiffuser1 = true;
@@ -1248,17 +1285,17 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
                     rogers_py_diffuser3 = list.at(7).toDouble();
                     rogers_pz_diffuser3 = list.at(8).toDouble();
                 }
-
+                
             }
-
+            
             // are we done?
-            if(gotTOF1 && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
-
+            if(gotTOF1_us && gotTOF1_ds && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
+                
                 double r1 = TMath::Sqrt(rogers_x_diffuser1*rogers_x_diffuser1 + rogers_y_diffuser1*rogers_y_diffuser1);
                 double r2 = TMath::Sqrt(rogers_x_diffuser2*rogers_x_diffuser2 + rogers_y_diffuser2*rogers_y_diffuser2);
                 double r3 = TMath::Sqrt(rogers_x_diffuser3*rogers_x_diffuser3 + rogers_y_diffuser3*rogers_y_diffuser3);
                 double max_radius = 90.0;
-
+                
                 file_line = in.pos();
                 if(r1 <= max_radius && r2 <= max_radius && r3 <= max_radius){
                     cut_diffuser = 1;
@@ -1266,13 +1303,13 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
                 else{
                     cut_diffuser = 0;
                 }
-
+                
                 done = true;
                 //std::cout << "... done\n";
             }
         }
     }
-
+    
     file.flush();
     file.close();
 }
@@ -1284,12 +1321,18 @@ void BetterReadMAUS::reset_rogers_tracking(){
     rogers_spill = -1;
     rogers_event = -1;
     cut_diffuser = -1;
-    rogers_tof01 = TMath::Infinity();
-    rogers_x_tof1 = TMath::Infinity();
-    rogers_y_tof1 = TMath::Infinity();
-    rogers_px_tof1 = TMath::Infinity();
-    rogers_py_tof1 = TMath::Infinity();
-    rogers_pz_tof1 = TMath::Infinity();
+    rogers_tof01_us = TMath::Infinity();
+    rogers_x_tof1_us = TMath::Infinity();
+    rogers_y_tof1_us = TMath::Infinity();
+    rogers_px_tof1_us = TMath::Infinity();
+    rogers_py_tof1_us = TMath::Infinity();
+    rogers_pz_tof1_us = TMath::Infinity();
+    rogers_tof01_ds = TMath::Infinity();
+    rogers_x_tof1_ds = TMath::Infinity();
+    rogers_y_tof1_ds = TMath::Infinity();
+    rogers_px_tof1_ds = TMath::Infinity();
+    rogers_py_tof1_ds = TMath::Infinity();
+    rogers_pz_tof1_ds = TMath::Infinity();
     rogers_x_diffuser1 = TMath::Infinity();
     rogers_y_diffuser1 = TMath::Infinity();
     rogers_z_diffuser1 = TMath::Infinity();
@@ -1319,27 +1362,40 @@ void BetterReadMAUS::reset_rogers_tracking(){
 
 void BetterReadMAUS::reset_mc_particle_variables(){
     // reset's particle variables
-
+    
     // approx locations of detector stations
     // used to find closest virtual plane.
-    mc_tof0_z = 5286.0;
-    mc_tof1_z = 12930.0;
-    mc_tku_s1_z = 15060.0;
-    mc_tku_s2_z = 14860.0;
-    mc_tku_s3_z = 14610.0;
-    mc_tku_s4_z = 14310.0;
-    mc_tku_s5_z = 13960.0;
-    mc_diffuser_z = 13680.0; // approx.. no virtual planes in
-                             // this precise area, though
-
+    mc_tof0_z = 5260.66; //5286.0;
+    mc_tof1_z_us = 12904.4; //12930.0;
+    mc_tof1_z_ds = 12954.5; //12930.0;
+    /*mc_tku_s1_z = 15060.0;
+     mc_tku_s2_z = 14860.0;
+     mc_tku_s3_z = 14610.0;
+     mc_tku_s4_z = 14310.0;
+     mc_tku_s5_z = 13960.0;
+     mc_diffuser_z1 = 13961.7; // z of most upstream plane of diffuser
+     mc_diffuser_z2 = 13962.4;  // z of the middle of the diffuser
+     mc_diffuser_z3 = 13963.0;
+     */
+    mc_tku_s1_z = 15062.3;
+    mc_tku_s2_z = 14861.4;
+    mc_tku_s3_z = 14612.4;
+    mc_tku_s4_z = 14312.4;
+    mc_tku_s5_z = 13962.4;
+    mc_diffuser_z1 = 13961.7; // z of most upstream plane of diffuser
+    mc_diffuser_z2 = 13962.4;  // z of the middle of the diffuser
+    mc_diffuser_z3 = 13963.0;
+    
     reset_mc_TOF0_variables();
     reset_mc_TOF1_variables();
     reset_mc_TKU_variables();
     reset_mc_diffuser_variables();
-
+    
     mc_event_number = -1;
     mc_spill_number = -1;
     mc_particle_id = -1;
+    
+    
 }
 
 void BetterReadMAUS::reset_mc_TOF0_variables(){
@@ -1349,17 +1405,31 @@ void BetterReadMAUS::reset_mc_TOF0_variables(){
     mc_tof0_py = TMath::Infinity();
     mc_tof0_pz = TMath::Infinity();
     mc_tof0_p = TMath::Infinity();
+    mc_tof0_xPrime = TMath::Infinity();
+    mc_tof0_yPrime = TMath::Infinity();
     mc_tof0_t = TMath::Infinity();
 }
 
 void BetterReadMAUS::reset_mc_TOF1_variables(){
-    mc_tof1_x = TMath::Infinity();
-    mc_tof1_y = TMath::Infinity();
-    mc_tof1_px = TMath::Infinity();
-    mc_tof1_py = TMath::Infinity();
-    mc_tof1_pz = TMath::Infinity();
-    mc_tof1_p = TMath::Infinity();
-    mc_tof1_t = TMath::Infinity();
+    mc_tof1_x_us = TMath::Infinity();
+    mc_tof1_y_us = TMath::Infinity();
+    mc_tof1_px_us = TMath::Infinity();
+    mc_tof1_py_us = TMath::Infinity();
+    mc_tof1_pz_us = TMath::Infinity();
+    mc_tof1_p_us = TMath::Infinity();
+    mc_tof1_xPrime_us = TMath::Infinity();
+    mc_tof1_yPrime_us = TMath::Infinity();
+    mc_tof1_t_us = TMath::Infinity();
+    
+    mc_tof1_x_ds = TMath::Infinity();
+    mc_tof1_y_ds = TMath::Infinity();
+    mc_tof1_px_ds = TMath::Infinity();
+    mc_tof1_py_ds = TMath::Infinity();
+    mc_tof1_pz_ds = TMath::Infinity();
+    mc_tof1_p_ds = TMath::Infinity();
+    mc_tof1_xPrime_ds = TMath::Infinity();
+    mc_tof1_yPrime_ds = TMath::Infinity();
+    mc_tof1_t_ds = TMath::Infinity();
 }
 
 void BetterReadMAUS::reset_mc_TKU_variables(){
@@ -1370,7 +1440,7 @@ void BetterReadMAUS::reset_mc_TKU_variables(){
     mc_tku_s1_pz = TMath::Infinity();
     mc_tku_s1_p = TMath::Infinity();
     mc_tku_s1_B = TMath::Infinity();
-
+    
     mc_tku_s2_x = TMath::Infinity();
     mc_tku_s2_y = TMath::Infinity();
     mc_tku_s2_px = TMath::Infinity();
@@ -1378,7 +1448,7 @@ void BetterReadMAUS::reset_mc_TKU_variables(){
     mc_tku_s2_pz = TMath::Infinity();
     mc_tku_s2_p = TMath::Infinity();
     mc_tku_s2_B = TMath::Infinity();
-
+    
     mc_tku_s3_x = TMath::Infinity();
     mc_tku_s3_y = TMath::Infinity();
     mc_tku_s3_px = TMath::Infinity();
@@ -1386,7 +1456,7 @@ void BetterReadMAUS::reset_mc_TKU_variables(){
     mc_tku_s3_pz = TMath::Infinity();
     mc_tku_s3_p = TMath::Infinity();
     mc_tku_s3_B = TMath::Infinity();
-
+    
     mc_tku_s4_x = TMath::Infinity();
     mc_tku_s4_y = TMath::Infinity();
     mc_tku_s4_px = TMath::Infinity();
@@ -1394,7 +1464,7 @@ void BetterReadMAUS::reset_mc_TKU_variables(){
     mc_tku_s4_pz = TMath::Infinity();
     mc_tku_s4_p = TMath::Infinity();
     mc_tku_s4_B = TMath::Infinity();
-
+    
     mc_tku_s5_x = TMath::Infinity();
     mc_tku_s5_y = TMath::Infinity();
     mc_tku_s5_px = TMath::Infinity();
@@ -1405,13 +1475,29 @@ void BetterReadMAUS::reset_mc_TKU_variables(){
 }
 
 void BetterReadMAUS::reset_mc_diffuser_variables(){
-    mc_diffuser_x = TMath::Infinity();
-    mc_diffuser_y = TMath::Infinity();
-    mc_diffuser_px = TMath::Infinity();
-    mc_diffuser_py = TMath::Infinity();
-    mc_diffuser_pz = TMath::Infinity();
-    mc_diffuser_p = TMath::Infinity();
-    mc_diffuser_B = TMath::Infinity();
+    mc_diffuser_x1 = TMath::Infinity();
+    mc_diffuser_y1 = TMath::Infinity();
+    mc_diffuser_px1 = TMath::Infinity();
+    mc_diffuser_py1 = TMath::Infinity();
+    mc_diffuser_pz1 = TMath::Infinity();
+    mc_diffuser_p1 = TMath::Infinity();
+    mc_diffuser_B1 = TMath::Infinity();
+    
+    mc_diffuser_x2 = TMath::Infinity();
+    mc_diffuser_y2 = TMath::Infinity();
+    mc_diffuser_px2 = TMath::Infinity();
+    mc_diffuser_py2 = TMath::Infinity();
+    mc_diffuser_pz2 = TMath::Infinity();
+    mc_diffuser_p2 = TMath::Infinity();
+    mc_diffuser_B2 = TMath::Infinity();
+    
+    mc_diffuser_x3 = TMath::Infinity();
+    mc_diffuser_y3 = TMath::Infinity();
+    mc_diffuser_px3 = TMath::Infinity();
+    mc_diffuser_py3 = TMath::Infinity();
+    mc_diffuser_pz3 = TMath::Infinity();
+    mc_diffuser_p3 = TMath::Infinity();
+    mc_diffuser_B3 = TMath::Infinity();
 }
 
 
@@ -1420,11 +1506,11 @@ void BetterReadMAUS::reset_mc_diffuser_variables(){
 void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputFile = new TFile(saveAs.toStdString().c_str(), "RECREATE");
     outputTree = new TTree("T", "T");
-
+    
     outputTree->Branch("MC_SpillNumber", &mc_spill_number, "MC_SpillNumber/I");
     outputTree->Branch("MC_EventNumber", &mc_event_number, "MC_EventNumber/I");
     outputTree->Branch("MC_ParticleID", &mc_particle_id, "MC_ParticleID/I");
-
+    
     outputTree->Branch("MC_TOF0_x", &mc_tof0_x, "MC_TOF0_x/D");
     outputTree->Branch("MC_TOF0_y", &mc_tof0_y, "MC_TOF0_y/D");
     outputTree->Branch("MC_TOF0_z", &mc_tof0_z, "MC_TOF0_z/D");
@@ -1432,17 +1518,32 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TOF0_py", &mc_tof0_py, "MC_TOF0_py/D");
     outputTree->Branch("MC_TOF0_pz", &mc_tof0_pz, "MC_TOF0_pz/D");
     outputTree->Branch("MC_TOF0_p", &mc_tof0_p, "MC_TOF0_p/D");
+    outputTree->Branch("MC_TOF0_xPrime", &mc_tof0_xPrime, "MC_TOF0_xPrime/D");
+    outputTree->Branch("MC_TOF0_yPrime", &mc_tof0_yPrime, "MC_TOF0_yPrime/D");
     outputTree->Branch("MC_TOF0_t", &mc_tof0_t, "MC_TOF0_t/D");
-
-    outputTree->Branch("MC_TOF1_x", &mc_tof1_x, "MC_MC_TOF1_x/D");
-    outputTree->Branch("MC_TOF1_y", &mc_tof1_y, "MC_TOF1_y/D");
-    outputTree->Branch("MC_TOF1_z", &mc_tof1_z, "MC_TOF1_z/D");
-    outputTree->Branch("MC_TOF1_px", &mc_tof1_px, "MC_TOF1_px/D");
-    outputTree->Branch("MC_TOF1_py", &mc_tof1_py, "MC_TOF1_py/D");
-    outputTree->Branch("MC_TOF1_pz", &mc_tof1_pz, "MC_TOF1_pz/D");
-    outputTree->Branch("MC_TOF1_p", &mc_tof1_p, "MC_TOF1_p/D");
-    outputTree->Branch("MC_TOF1_t", &mc_tof1_t, "MC_TOF1_t/D");
-
+    
+    outputTree->Branch("MC_TOF1_x_us", &mc_tof1_x_us, "MC_MC_TOF1_x_us/D");
+    outputTree->Branch("MC_TOF1_y_us", &mc_tof1_y_us, "MC_TOF1_y_us/D");
+    outputTree->Branch("MC_TOF1_z_us", &mc_tof1_z_us, "MC_TOF1_z_us/D");
+    outputTree->Branch("MC_TOF1_px_us", &mc_tof1_px_us, "MC_TOF1_px_us/D");
+    outputTree->Branch("MC_TOF1_py_us", &mc_tof1_py_us, "MC_TOF1_py_us/D");
+    outputTree->Branch("MC_TOF1_pz_us", &mc_tof1_pz_us, "MC_TOF1_pz_us/D");
+    outputTree->Branch("MC_TOF1_p_us", &mc_tof1_p_us, "MC_TOF1_p_us/D");
+    outputTree->Branch("MC_TOF1_xPrime_us", &mc_tof1_xPrime_us, "MC_TOF1_xPrime_us/D");
+    outputTree->Branch("MC_TOF1_yPrime_us", &mc_tof1_yPrime_us, "MC_TOF1_yPrime_us/D");
+    outputTree->Branch("MC_TOF1_t_us", &mc_tof1_t_us, "MC_TOF1_t_us/D");
+    
+    outputTree->Branch("MC_TOF1_x_ds", &mc_tof1_x_ds, "MC_MC_TOF1_x_ds/D");
+    outputTree->Branch("MC_TOF1_y_ds", &mc_tof1_y_ds, "MC_TOF1_y_ds/D");
+    outputTree->Branch("MC_TOF1_z_ds", &mc_tof1_z_ds, "MC_TOF1_z_ds/D");
+    outputTree->Branch("MC_TOF1_px_ds", &mc_tof1_px_ds, "MC_TOF1_px_ds/D");
+    outputTree->Branch("MC_TOF1_py_ds", &mc_tof1_py_ds, "MC_TOF1_py_ds/D");
+    outputTree->Branch("MC_TOF1_pz_ds", &mc_tof1_pz_ds, "MC_TOF1_pz_ds/D");
+    outputTree->Branch("MC_TOF1_p_ds", &mc_tof1_p_ds, "MC_TOF1_p_ds/D");
+    outputTree->Branch("MC_TOF1_xPrime_ds", &mc_tof1_xPrime_ds, "MC_TOF1_xPrime_ds/D");
+    outputTree->Branch("MC_TOF1_yPrime_ds", &mc_tof1_yPrime_ds, "MC_TOF1_yPrime_ds/D");
+    outputTree->Branch("MC_TOF1_t_ds", &mc_tof1_t_ds, "MC_TOF1_t_ds/D");
+    
     outputTree->Branch("MC_TKU_s1_x", &mc_tku_s1_x, "MC_TKU_s1_x/D"); // station 1
     outputTree->Branch("MC_TKU_s1_y", &mc_tku_s1_y, "MC_TKU_s1_y/D");
     outputTree->Branch("MC_TKU_s1_z", &mc_tku_s1_z, "MC_TKU_s1_z/D");
@@ -1450,7 +1551,7 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TKU_s1_py", &mc_tku_s1_py, "MC_TKU_s1_py/D");
     outputTree->Branch("MC_TKU_s1_pz", &mc_tku_s1_pz, "MC_TKU_s1_pz/D");
     outputTree->Branch("MC_TKU_s1_p", &mc_tku_s1_p, "MC_TKU_s1_p/D");
-
+    
     outputTree->Branch("MC_TKU_s2_x", &mc_tku_s2_x, "MC_TKU_s2_x/D"); // station 2
     outputTree->Branch("MC_TKU_s2_y", &mc_tku_s2_y, "MC_TKU_s2_y/D");
     outputTree->Branch("MC_TKU_s2_z", &mc_tku_s2_z, "MC_TKU_s2_z/D");
@@ -1458,7 +1559,7 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TKU_s2_py", &mc_tku_s2_py, "MC_TKU_s2_py/D");
     outputTree->Branch("MC_TKU_s2_pz", &mc_tku_s2_pz, "MC_TKU_s2_pz/D");
     outputTree->Branch("MC_TKU_s2_p", &mc_tku_s2_p, "MC_TKU_s2_p/D");
-
+    
     outputTree->Branch("MC_TKU_s3_x", &mc_tku_s3_x, "MC_TKU_s3_x/D"); // station 3
     outputTree->Branch("MC_TKU_s3_y", &mc_tku_s3_y, "MC_TKU_s3_y/D");
     outputTree->Branch("MC_TKU_s3_z", &mc_tku_s3_z, "MC_TKU_s3_z/D");
@@ -1466,7 +1567,7 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TKU_s3_py", &mc_tku_s3_py, "MC_TKU_s3_py/D");
     outputTree->Branch("MC_TKU_s3_pz", &mc_tku_s3_pz, "MC_TKU_s3_pz/D");
     outputTree->Branch("MC_TKU_s3_p", &mc_tku_s3_p, "MC_TKU_s3_p/D");
-
+    
     outputTree->Branch("MC_TKU_s4_x", &mc_tku_s4_x, "MC_TKU_s4_x/D"); // station 4
     outputTree->Branch("MC_TKU_s4_y", &mc_tku_s4_y, "MC_TKU_s4_y/D");
     outputTree->Branch("MC_TKU_s4_z", &mc_tku_s4_z, "MC_TKU_s4_z/D");
@@ -1474,7 +1575,7 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TKU_s4_py", &mc_tku_s4_py, "MC_TKU_s4_py/D");
     outputTree->Branch("MC_TKU_s4_pz", &mc_tku_s4_pz, "MC_TKU_s4_pz/D");
     outputTree->Branch("MC_TKU_s4_p", &mc_tku_s4_p, "MC_TKU_s4_p/D");
-
+    
     outputTree->Branch("MC_TKU_s5_x", &mc_tku_s5_x, "MC_TKU_s5_x/D"); // station 5
     outputTree->Branch("MC_TKU_s5_y", &mc_tku_s5_y, "MC_TKU_s5_y/D");
     outputTree->Branch("MC_TKU_s5_z", &mc_tku_s5_z, "MC_TKU_s5_z/D");
@@ -1482,16 +1583,34 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
     outputTree->Branch("MC_TKU_s5_py", &mc_tku_s5_py, "MC_TKU_s5_py/D");
     outputTree->Branch("MC_TKU_s5_pz", &mc_tku_s5_pz, "MC_TKU_s5_pz/D");
     outputTree->Branch("MC_TKU_s5_p", &mc_tku_s5_p, "MC_TKU_s5_p/D");
-
-    outputTree->Branch("MC_diffuser_x", &mc_diffuser_x, "MC_diffuser_x/D");
-    outputTree->Branch("MC_diffuser_y", &mc_diffuser_y, "MC_diffuser_y/D");
-    outputTree->Branch("MC_diffuser_z", &mc_diffuser_z, "MC_diffuser_z/D");
-    outputTree->Branch("MC_diffuser_px", &mc_diffuser_px, "MC_diffuser_px/D");
-    outputTree->Branch("MC_diffuser_py", &mc_diffuser_py, "MC_diffuser_py/D");
-    outputTree->Branch("MC_diffuser_pz", &mc_diffuser_pz, "MC_diffuser_pz/D");
-    outputTree->Branch("MC_diffuser_p", &mc_diffuser_p, "MC_diffuser_p/D");
-    outputTree->Branch("MC_diffuser_B", &mc_diffuser_B, "MC_diffuser_B/D");
-
+    
+    outputTree->Branch("MC_diffuser_x1", &mc_diffuser_x1, "MC_diffuser_x1/D");
+    outputTree->Branch("MC_diffuser_y1", &mc_diffuser_y1, "MC_diffuser_y1/D");
+    outputTree->Branch("MC_diffuser_z1", &mc_diffuser_z1, "MC_diffuser_z1/D");
+    outputTree->Branch("MC_diffuser_px1", &mc_diffuser_px1, "MC_diffuser_px1/D");
+    outputTree->Branch("MC_diffuser_py1", &mc_diffuser_py1, "MC_diffuser_py1/D");
+    outputTree->Branch("MC_diffuser_pz1", &mc_diffuser_pz1, "MC_diffuser_pz1/D");
+    outputTree->Branch("MC_diffuser_p1", &mc_diffuser_p1, "MC_diffuser_p1/D");
+    outputTree->Branch("MC_diffuser_B1", &mc_diffuser_B1, "MC_diffuser_B1/D");
+    
+    outputTree->Branch("MC_diffuser_x2", &mc_diffuser_x2, "MC_diffuser_x2/D");
+    outputTree->Branch("MC_diffuser_y2", &mc_diffuser_y2, "MC_diffuser_y2/D");
+    outputTree->Branch("MC_diffuser_z2", &mc_diffuser_z2, "MC_diffuser_z2/D");
+    outputTree->Branch("MC_diffuser_px2", &mc_diffuser_px2, "MC_diffuser_px2/D");
+    outputTree->Branch("MC_diffuser_py2", &mc_diffuser_py2, "MC_diffuser_py2/D");
+    outputTree->Branch("MC_diffuser_pz2", &mc_diffuser_pz2, "MC_diffuser_pz2/D");
+    outputTree->Branch("MC_diffuser_p2", &mc_diffuser_p2, "MC_diffuser_p2/D");
+    outputTree->Branch("MC_diffuser_B2", &mc_diffuser_B2, "MC_diffuser_B2/D");
+    
+    outputTree->Branch("MC_diffuser_x3", &mc_diffuser_x3, "MC_diffuser_x3/D");
+    outputTree->Branch("MC_diffuser_y3", &mc_diffuser_y3, "MC_diffuser_y3/D");
+    outputTree->Branch("MC_diffuser_z3", &mc_diffuser_z3, "MC_diffuser_z3/D");
+    outputTree->Branch("MC_diffuser_px3", &mc_diffuser_px3, "MC_diffuser_px3/D");
+    outputTree->Branch("MC_diffuser_py3", &mc_diffuser_py3, "MC_diffuser_py3/D");
+    outputTree->Branch("MC_diffuser_pz3", &mc_diffuser_pz3, "MC_diffuser_pz3/D");
+    outputTree->Branch("MC_diffuser_p3", &mc_diffuser_p3, "MC_diffuser_p3/D");
+    outputTree->Branch("MC_diffuser_B3", &mc_diffuser_B3, "MC_diffuser_B3/D");
+    
 }
 
 
@@ -1509,59 +1628,99 @@ void BetterReadMAUS::ReadMC(QString fileToOpen, QString fileToSaveAs){
      *      b. Get a spacepoint at TOF1, do the same
      *      c. Get a track in the upstream tracker
      */
-
+    
     define_mc_root_file(fileToSaveAs);
-
+    
     MAUS::Data data;
     irstream infile(fileToOpen.toStdString().c_str(), "Spill");
-
+    
+    int count = 0;
+    
+    last_event_number = 0;
+    mc_spill_counter = 1;
+    mc_spills = false;
+    
     // iterate over events:
     while(infile >> readEvent != NULL){
         infile >> branchName("data") >> data;
         spill = data.GetSpill();
-
+        
         if(spill != NULL && spill->GetDaqEventType() == "physics_event"){
             // Found a spill that contains data. Iterate over all its events...
-
+            
             readMCParticleEvent();
         }
     }
-
+    
     outputFile->cd();
     outputTree->Write();
     outputFile->Write();
-
+    
     outputFile->Close();
-
+    
 }
 
 void BetterReadMAUS::readMCParticleEvent(){
-
-    double dz = 5.0;
-    double diffuser_dz = 250.0;
+    
+    double dz = 0.1;
+    double diffuser_dz = 0.1;
     MAUS::ThreeVector position;
     MAUS::ThreeVector momentum;
     MAUS::ThreeVector field;
     MAUS::VirtualHit hit;
     MAUS::VirtualHitArray* vhit_array;
-
+    
     for(size_t i = 0; i < spill->GetMCEvents()->size(); ++i){
         reset_mc_particle_variables();
-
+        
         mc_spill_number = spill->GetSpillNumber();
         mc_event_number = i;
-
-
+        
+        
+        std::cout << "Reading spill " << mc_spill_number << ", event " << mc_event_number;
+        
+        // safety check versus MC files all having spill == 1:
+        if(mc_spill_number == 1 && mc_event_number < last_event_number){
+            mc_spill_counter += 1;
+            if(!mc_spills){
+                // first time detecting that we're actually looking at a funky MC spill/event numbering
+                mc_spills = true;
+            }
+        }
+        last_event_number = mc_event_number;
+        if(mc_spills){
+            mc_spill_number = mc_spill_counter; // set spill number to a more appropriate count
+            std::cout << " --> " << mc_spill_number << ", with event " << mc_event_number << "\n";
+        }
+        else{
+            std::cout << "\n";
+        }
+        
+        
+        bool testping = false;
+        
         vhit_array = (*spill->GetMCEvents())[i]->GetVirtualHits();
         for (int v=0; v < vhit_array->size(); ++v) {
             hit = vhit_array->at(v);
             position = hit.GetPosition();
-            mc_particle_id = hit.GetParticleId();
-            //std::cout << "mc_particle_id = " << mc_particle_id << "\n";
-
+            
+            
+            testping = false;
+            
+            if(position.z() >= mc_diffuser_z1 - 1500.0 && position.z() <= mc_diffuser_z1 + 1500.0){
+                std::cout << "...................Looking for z = " << mc_diffuser_z1 <<  "--> found z = " << position.z() << "\n";
+                testping = true;
+            }
+            
+            //std::cout << "Plane position = " << position.z() << " compared to z = " << mc_diffuser_z1 << ", "  << mc_diffuser_z2 << ", or " << mc_diffuser_z3 << "\n";
+            
             if(position.z() >= mc_tof0_z - dz && position.z() <= mc_tof0_z + dz){
+                if(testping){
+                    std::cout << "ping, tof0 with z = " << position.z() << "\n";
+                }
+                
                 momentum = hit.GetMomentum();
-
+                
                 mc_tof0_x = position.x();
                 mc_tof0_y = position.y();
                 mc_tof0_z = position.z();
@@ -1571,21 +1730,47 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tof0_p = TMath::Sqrt(mc_tof0_px*mc_tof0_px + mc_tof0_py*mc_tof0_py + mc_tof0_pz*mc_tof0_pz);
                 mc_tof0_t = hit.GetTime();
             }
-            else if(position.z() >= mc_tof1_z - dz && position.z() <= mc_tof1_z + dz){
+            else if(position.z() >= mc_tof1_z_us - dz && position.z() <= mc_tof1_z_us + dz){
+                if(testping){
+                    std::cout << "ping, tof1 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
-
-                mc_tof1_x = position.x();
-                mc_tof1_y = position.y();
-                mc_tof1_z = position.z();
-                mc_tof1_px = momentum.x();
-                mc_tof1_py = momentum.y();
-                mc_tof1_pz = momentum.z();
-                mc_tof1_p = TMath::Sqrt(mc_tof1_px*mc_tof1_px + mc_tof1_py*mc_tof1_py + mc_tof1_pz*mc_tof1_pz);
-                mc_tof1_t = hit.GetTime();
+                
+                mc_tof1_x_us = position.x();
+                mc_tof1_y_us = position.y();
+                mc_tof1_z_us = position.z();
+                mc_tof1_px_us = momentum.x();
+                mc_tof1_py_us = momentum.y();
+                mc_tof1_pz_us = momentum.z();
+                mc_tof1_p_us = TMath::Sqrt(mc_tof1_px_us*mc_tof1_px_us + mc_tof1_py_us*mc_tof1_py_us + mc_tof1_pz_us*mc_tof1_pz_us);
+                mc_tof1_xPrime_us = mc_tof1_px_us/mc_tof1_pz_us;
+                mc_tof1_yPrime_us = mc_tof1_py_us/mc_tof1_pz_us;
+                mc_tof1_t_us = hit.GetTime();
+                mc_particle_id = hit.GetParticleId();
+            }
+            else if(position.z() >= mc_tof1_z_ds - dz && position.z() <= mc_tof1_z_ds + dz){
+                if(testping){
+                    std::cout << "ping, tof1 with z = " << position.z() << "\n";
+                }
+                momentum = hit.GetMomentum();
+                
+                mc_tof1_x_ds = position.x();
+                mc_tof1_y_ds = position.y();
+                mc_tof1_z_ds = position.z();
+                mc_tof1_px_ds = momentum.x();
+                mc_tof1_py_ds = momentum.y();
+                mc_tof1_pz_ds = momentum.z();
+                mc_tof1_p_ds = TMath::Sqrt(mc_tof1_px_ds*mc_tof1_px_ds + mc_tof1_py_ds*mc_tof1_py_ds + mc_tof1_pz_ds*mc_tof1_pz_ds);
+                mc_tof1_xPrime_ds = mc_tof1_px_ds/mc_tof1_pz_ds;
+                mc_tof1_yPrime_ds = mc_tof1_py_ds/mc_tof1_pz_ds;
+                mc_tof1_t_ds = hit.GetTime();
             }
             else if(position.z() >= mc_tku_s1_z - dz && position.z() <= mc_tku_s1_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s1 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
-
+                
                 mc_tku_s1_x = position.x();
                 mc_tku_s1_y = position.y();
                 mc_tku_s1_z = position.z();
@@ -1597,8 +1782,11 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s1_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
             else if(position.z() >= mc_tku_s2_z - dz && position.z() <= mc_tku_s2_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s2 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
-
+                
                 mc_tku_s2_x = position.x();
                 mc_tku_s2_y = position.y();
                 mc_tku_s2_z = position.z();
@@ -1610,8 +1798,11 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s2_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
             else if(position.z() >= mc_tku_s3_z - dz && position.z() <= mc_tku_s3_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s3 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
-
+                
                 mc_tku_s3_x = position.x();
                 mc_tku_s3_y = position.y();
                 mc_tku_s3_z = position.z();
@@ -1623,8 +1814,11 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s3_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
             else if(position.z() >= mc_tku_s4_z - dz && position.z() <= mc_tku_s4_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s4 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
-
+                
                 mc_tku_s4_x = position.x();
                 mc_tku_s4_y = position.y();
                 mc_tku_s4_z = position.z();
@@ -1636,8 +1830,11 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s4_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
             else if(position.z() >= mc_tku_s5_z - dz && position.z() <= mc_tku_s5_z + dz){
+                if(testping){
+                    std::cout << "ping, tku_s5 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
-
+                
                 mc_tku_s5_x = position.x();
                 mc_tku_s5_y = position.y();
                 mc_tku_s5_z = position.z();
@@ -1648,27 +1845,62 @@ void BetterReadMAUS::readMCParticleEvent(){
                 field = hit.GetBField();
                 mc_tku_s5_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
-            else if(position.z() >= mc_diffuser_z - diffuser_dz && position.z() <= mc_diffuser_z + diffuser_dz){
+            else if(position.z() == mc_diffuser_z1 - diffuser_dz && position.z() <= mc_diffuser_z1 + diffuser_dz){
+                if(testping){
+                    std::cout << "ping, diff1 with z = " << position.z() << "\n";
+                }
                 momentum = hit.GetMomentum();
-
-                mc_diffuser_x = position.x();
-                mc_diffuser_y = position.y();
-                mc_diffuser_z = position.z();
-                mc_diffuser_px = momentum.x();
-                mc_diffuser_py = momentum.y();
-                mc_diffuser_pz = momentum.z();
-                mc_diffuser_p = TMath::Sqrt(mc_diffuser_px*mc_diffuser_px + mc_diffuser_py*mc_diffuser_py + mc_diffuser_pz*mc_diffuser_pz);
+                
+                mc_diffuser_x1 = position.x();
+                mc_diffuser_y1 = position.y();
+                mc_diffuser_z1 = position.z();
+                mc_diffuser_px1 = momentum.x();
+                mc_diffuser_py1 = momentum.y();
+                mc_diffuser_pz1 = momentum.z();
+                mc_diffuser_p1 = TMath::Sqrt(mc_diffuser_px1*mc_diffuser_px1 + mc_diffuser_py1*mc_diffuser_py1 + mc_diffuser_pz1*mc_diffuser_pz1);
                 field = hit.GetBField();
-                mc_diffuser_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+                mc_diffuser_B1 = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+            else if(position.z() >= mc_diffuser_z2 - diffuser_dz && position.z() <= mc_diffuser_z2 + diffuser_dz){
+                if(testping){
+                    std::cout << "ping, diff2 with z = " << position.z() << "\n";
+                }
+                momentum = hit.GetMomentum();
+                
+                mc_diffuser_x2 = position.x();
+                mc_diffuser_y2 = position.y();
+                mc_diffuser_z2 = position.z();
+                mc_diffuser_px2 = momentum.x();
+                mc_diffuser_py2 = momentum.y();
+                mc_diffuser_pz2 = momentum.z();
+                mc_diffuser_p2 = TMath::Sqrt(mc_diffuser_px2*mc_diffuser_px2 + mc_diffuser_py2*mc_diffuser_py2 + mc_diffuser_pz2*mc_diffuser_pz2);
+                field = hit.GetBField();
+                mc_diffuser_B2 = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+            }
+            else if(position.z() >= mc_diffuser_z3 - diffuser_dz && position.z() <= mc_diffuser_z3 + diffuser_dz){
+                if(testping){
+                    std::cout << "ping, diff3 with z = " << position.z() << "\n";
+                }
+                momentum = hit.GetMomentum();
+                
+                mc_diffuser_x3 = position.x();
+                mc_diffuser_y3 = position.y();
+                mc_diffuser_z3 = position.z();
+                mc_diffuser_px3 = momentum.x();
+                mc_diffuser_py3 = momentum.y();
+                mc_diffuser_pz3 = momentum.z();
+                mc_diffuser_p3 = TMath::Sqrt(mc_diffuser_px3*mc_diffuser_px3 + mc_diffuser_py3*mc_diffuser_py3 + mc_diffuser_pz3*mc_diffuser_pz3);
+                field = hit.GetBField();
+                mc_diffuser_B3 = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
         }
-
-
-
-
-
-
-
+        
+        
+        
+        
+        
+        
+        
         outputTree->Fill();
     }
 }
