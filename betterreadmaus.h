@@ -16,6 +16,9 @@
 #include "units.h"
 #include <QHash>
 #include <QPair>
+#include <TH2.h>
+#include <TH1.h>
+#include <TCanvas.h>
 
 
 #include <DataStructure/Spill.hh>
@@ -52,13 +55,27 @@ public:
     
     
     void ReadMC(QString fileToOpen, QString fileToSaveAs);
+
+    void SetDataType(bool thisIsData, bool thisIsMCRecon, bool thisIsMCTruth);
     
 private:
+    bool isData, isMCRecon, isMCTruth;
+
     MAUS::Spill *spill;
     MAUS::TOFEvent *tof_event;
     MAUS::SciFiEvent *scifi_event;
     
-    
+    TH2F* tof0_global_x_vs_slab_number;
+    TH2F* tof1_global_x_vs_slab_number;
+    TH2F* tof0_global_y_vs_slab_number;
+    TH2F* tof1_global_y_vs_slab_number;
+    TH1F* tof0_x_residual;
+    TH1F* tof0_y_residual;
+    TH1F* tof1_x_residual;
+    TH1F* tof1_y_residual;
+    void print_tof_plots();
+
+
     QFile file;
     TFile *dataFile;
     TFile *outputFile;
@@ -73,6 +90,7 @@ private:
     int last_event_number;
     int mc_spill_counter;
     bool mc_spills;
+    bool data_spills;
     
     
     double TOF0_xPixel, TOF0_yPixel; // (x, y) positions of hits

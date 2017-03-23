@@ -153,9 +153,17 @@ void MainWindow::getData(){
     std::cout << "Using Q7 = " << q7_current << ", Q8 = " << q8_current << ", Q9 = " << q9_current << "\n";
 
     if(ui->btn_isMCtruth->isChecked()){
+        better_read_data->SetDataType(false, false, true);
         better_read_data->ReadMC(inputFilename, outputFilename);
     }
     else{
+        if(ui->btn_isData->isChecked()){
+            better_read_data->SetDataType(true, false, false);
+        }
+        else{
+            better_read_data->SetDataType(false, true, false);
+        }
+
         better_read_data->SetBeamlineParameters(min_tof, max_tof, sim_ele_path, data_ele_tof, q7_current, q8_current, q9_current, q7_zPosition, q8_zPosition, q9_zPosition, tof0_zPosition, tof1_zPosition);
 
         better_read_data->Read(inputFilename, outputFilename, calibrationFileName, rogersTrackingFileName);

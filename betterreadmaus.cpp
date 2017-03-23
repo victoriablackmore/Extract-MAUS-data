@@ -5,6 +5,69 @@
 
 BetterReadMAUS::BetterReadMAUS()
 {
+    tof0_global_x_vs_slab_number = new TH2F("tof0_global_x_vs_slab_number", "TOF0;global x; vertical slab number", 10, -220.0, 220.0, 10, -0.5, 9.5);
+    tof0_global_y_vs_slab_number = new TH2F("tof0_global_y_vs_slab_number", "TOF0;global y; horizontal slab number", 10, -220.0, 220.0, 10, -0.5, 9.5);
+
+    tof1_global_x_vs_slab_number = new TH2F("tof1_global_x_vs_slab_number", "TOF1;global x; vertical slab number", 7, -220.0, 220.0, 7, -0.5, 6.5);
+    tof1_global_y_vs_slab_number = new TH2F("tof1_global_y_vs_slab_number", "TOF1;global y; horizontal slab number", 7, -220.0, 220.0, 7, -0.5, 6.5);
+
+    tof0_x_residual = new TH1F("tof0_x_residual", "TOF0; x recon - x pixel", 100, -220.0, 220.0);
+    tof1_x_residual = new TH1F("tof1_x_residual", "TOF1; x recon - x pixel", 100, -220.0, 220.0);
+    tof0_y_residual = new TH1F("tof0_y_residual", "TOF0; y recon - y pixel", 100, -220.0, 220.0);
+    tof1_y_residual = new TH1F("tof1_y_residual", "TOF1; y recon - y pixel", 100, -220.0, 220.0);
+
+}
+
+
+void BetterReadMAUS::SetDataType(bool thisIsData, bool thisIsMCRecon, bool thisIsMCTruth){
+    // This function gets used to determine which PMT is read as being on
+    // the top/bottom at TOF0 and TOF1 -- in MC recon, PMT0 is at +y, PMT1 is at -y
+    // in data, PMT1 is at +y, PMT0 is at -y
+    //
+    // Rather than changing the geometry and causing lots of confusion about *when* a
+    // PMT was at +/- y in a MC, we're just going to check to see which way around we
+    // need to read things.
+    //
+    // Check the plots in qualityCheck.pdf that this programme produces. If the y
+    // residuals look extremely broad (i.e. going well off the horizontal scale)
+    // then something has happened with the PMT positions.
+
+    isData = thisIsData;
+    isMCRecon = thisIsMCRecon;
+    isMCTruth = thisIsMCTruth;  // this won't do anything, but it makes sense for there to
+                                // be the option in case it's needed in the future
+}
+
+
+void BetterReadMAUS::print_tof_plots(){
+    std::string saveAs = "qualityCheck.pdf(";
+
+    TCanvas canvas;
+    tof0_x_residual->Draw("hist");
+    canvas.Print(saveAs.c_str());
+
+    tof0_y_residual->Draw("hist");
+    canvas.Print(saveAs.c_str());
+
+    tof1_x_residual->Draw("hist");
+    canvas.Print(saveAs.c_str());
+
+    tof1_y_residual->Draw("hist");
+    canvas.Print(saveAs.c_str());
+
+    tof0_global_x_vs_slab_number->Draw("colz");
+    canvas.Print(saveAs.c_str());
+
+    tof0_global_y_vs_slab_number->Draw("colz");
+    canvas.Print(saveAs.c_str());
+
+    tof1_global_x_vs_slab_number->Draw("colz");
+    canvas.Print(saveAs.c_str());
+
+    tof1_global_y_vs_slab_number->Draw("colz");
+
+    saveAs = "qualityCheck.pdf)";
+    canvas.Print(saveAs.c_str());
 }
 
 
@@ -286,10 +349,18 @@ void BetterReadMAUS::apply_calibration_TOF0(){
     
     bool good_x = false;
     bool good_y = false;
+
+
+
+    tof0_global_x_vs_slab_number->Fill(TOF0_xPixel, TOF0_vertical_slab);
+    tof0_global_y_vs_slab_number->Fill(TOF0_yPixel, TOF0_horizontal_slab);
+
     
     if(!std::isnan(horizontal_delta)){
         TOF0_x = 0.5*calibrated_c_eff*(TOF0_horizontal_slab_tMinus
                                        - TOF0_horizontal_slab_tPlus + horizontal_delta);
+
+        tof0_x_residual->Fill(TOF0_x - TOF0_xPixel);
         
         
         min_x = TOF0_xPixel - 0.5*slab_width;
@@ -311,6 +382,13 @@ void BetterReadMAUS::apply_calibration_TOF0(){
     if(!std::isnan(vertical_delta)){
         TOF0_y = 0.5*calibrated_c_eff*(TOF0_vertical_slab_tMinus
                                        - TOF0_vertical_slab_tPlus + vertical_delta);
+
+        // test:
+        //TOF0_y = -1.0*TOF0_y;
+
+        tof0_y_residual->Fill(TOF0_y - TOF0_yPixel);
+
+
         min_y = TOF0_yPixel - 0.5*slab_width;
         max_y = TOF0_yPixel + 0.5*slab_width;
         if(TOF0_y >= min_y && TOF0_y <= max_x){
@@ -332,6 +410,11 @@ void BetterReadMAUS::apply_calibration_TOF0(){
     else{
         TOF0_goodPMTPosition = 0;
     }
+
+
+
+
+
 }
 
 void BetterReadMAUS::apply_calibration_TOF1(){
@@ -343,11 +426,16 @@ void BetterReadMAUS::apply_calibration_TOF1(){
     
     bool good_x = false;
     bool good_y = false;
+
+    tof1_global_x_vs_slab_number->Fill(TOF1_xPixel, TOF1_vertical_slab);
+    tof1_global_y_vs_slab_number->Fill(TOF1_yPixel, TOF1_horizontal_slab);
+
     
     if(!std::isnan(horizontal_delta)){
         TOF1_x = 0.5*calibrated_c_eff*(TOF1_horizontal_slab_tMinus
                                        - TOF1_horizontal_slab_tPlus + horizontal_delta);
         
+        tof1_x_residual->Fill(TOF1_x - TOF1_xPixel);
         
         min_x = TOF1_xPixel - 0.5*slab_width;
         max_x = TOF1_xPixel + 0.5*slab_width;
@@ -368,6 +456,11 @@ void BetterReadMAUS::apply_calibration_TOF1(){
     if(!std::isnan(vertical_delta)){
         TOF1_y = 0.5*calibrated_c_eff*(TOF1_vertical_slab_tMinus
                                        - TOF1_vertical_slab_tPlus + vertical_delta);
+
+        // test:
+        //TOF1_y = -1.0*TOF1_y;
+        tof1_y_residual->Fill(TOF1_y - TOF1_yPixel);
+
         min_y = TOF1_yPixel - 0.5*slab_width;
         max_y = TOF1_yPixel + 0.5*slab_width;
         if(TOF1_y >= min_y && TOF1_y <= max_x){
@@ -622,6 +715,7 @@ void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString cali
     
     last_event_number = 0;
     mc_spill_counter = 1;
+    data_spills = false;
     mc_spills = false;
     
     // iterate over events:
@@ -638,6 +732,8 @@ void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString cali
             readParticleEvent();
         }
     }
+
+    print_tof_plots();
     
     outputFile->cd();
     outputTree->Write();
@@ -655,10 +751,21 @@ void BetterReadMAUS::readParticleEvent(){
         reconstructed_event_number = i;
         
         std::cout << "Reading spill " << spill_number << ", event " << reconstructed_event_number << "\n";
+
+        if(spill_number == 0){
+            // data spill start at 0
+            std::cout << "Detected spill 0, is this data?\n";
+            data_spills = true;
+        }
+
         
         // safety check versus MC files all having spill == 1:
-        if(spill_number == 1 && reconstructed_event_number < last_event_number){
+        if(spill_number == 1 && reconstructed_event_number < last_event_number && !data_spills){
             mc_spill_counter += 1;
+
+            std::cout << "spill: " << spill_number << ", event: " << reconstructed_event_number
+                      << ", last event: " << last_event_number << ", mc_spill: " << mc_spill_counter << "\n";
+
             if(!mc_spills){
                 // first time detecting that we're actually looking at a funky MC spill/event numbering
                 mc_spills = true;
@@ -668,6 +775,9 @@ void BetterReadMAUS::readParticleEvent(){
         if(mc_spills){
             spill_number = mc_spill_counter; // set spill number to a more appropriate count
             std::cout << "....Adjusting spill number to " << spill_number << ", with event " << reconstructed_event_number << "\n";
+            std::cout << "               spill: " << spill_number << ", event: " << reconstructed_event_number
+                      << ", last event: " << last_event_number << ", mc_spill: " << mc_spill_counter << "\n";
+
         }
         
         tof_event = (*spill->GetReconEvents())[i]->GetTOFEvent();
@@ -803,8 +913,16 @@ void BetterReadMAUS::particle_at_TOF0(){
             }
             else if(tof0_slab_hits.IsVertical()){
                 verticalHit = tof0_slab_hits.GetSlab();
-                TOF0_vertical_slab_tPlus = tof0_slab_hits.GetPmt1().GetTime();
-                TOF0_vertical_slab_tMinus = tof0_slab_hits.GetPmt0().GetTime();
+
+
+                if(isMCRecon == true){
+                    TOF0_vertical_slab_tPlus = tof0_slab_hits.GetPmt0().GetTime();
+                    TOF0_vertical_slab_tMinus = tof0_slab_hits.GetPmt1().GetTime();
+                }
+                else{
+                    TOF0_vertical_slab_tPlus = tof0_slab_hits.GetPmt1().GetTime();
+                    TOF0_vertical_slab_tMinus = tof0_slab_hits.GetPmt0().GetTime();
+                }
             }
             else{
                 std::cerr << "Warning: Unusual plane hits at TOF0. Proceed with caution.\n";
@@ -881,8 +999,15 @@ void BetterReadMAUS::particle_at_TOF1(){
             }
             else if(tof1_slab_hits.IsVertical()){
                 verticalHit = tof1_slab_hits.GetSlab();
-                TOF1_vertical_slab_tMinus = tof1_slab_hits.GetPmt0().GetTime();
-                TOF1_vertical_slab_tPlus = tof1_slab_hits.GetPmt1().GetTime();
+
+                if(isMCRecon==true){
+                    TOF1_vertical_slab_tPlus = tof1_slab_hits.GetPmt0().GetTime();
+                    TOF1_vertical_slab_tMinus = tof1_slab_hits.GetPmt1().GetTime();
+                }
+                else{
+                    TOF1_vertical_slab_tPlus = tof1_slab_hits.GetPmt1().GetTime();
+                    TOF1_vertical_slab_tMinus = tof1_slab_hits.GetPmt0().GetTime();
+                }
             }
             else{
                 std::cerr << "Warning: Unusual plane hits at TOF1. Proceed with caution.\n";
@@ -1382,9 +1507,9 @@ void BetterReadMAUS::reset_mc_particle_variables(){
     mc_tku_s3_z = 14612.4;
     mc_tku_s4_z = 14312.4;
     mc_tku_s5_z = 13962.4;
-    mc_diffuser_z1 = 13961.7; // z of most upstream plane of diffuser
-    mc_diffuser_z2 = 13962.4;  // z of the middle of the diffuser
-    mc_diffuser_z3 = 13963.0;
+    mc_diffuser_z1 = 13720.0; // z of most upstream plane of diffuser
+    mc_diffuser_z2 = 13730.0;  // z of the middle of the diffuser
+    mc_diffuser_z3 = 13740.0;
     
     reset_mc_TOF0_variables();
     reset_mc_TOF1_variables();
