@@ -836,8 +836,9 @@ void BetterReadMAUS::readParticleEvent(){
             goodParticle = 0;
         }
         
-        if(all_detectors_hit == 1 && !rogersTrackingFileName.isEmpty())
-        ReadRogersExtrapolation(spill_number, reconstructed_event_number);
+        //if(all_detectors_hit == 1 && !rogersTrackingFileName.isEmpty())
+        if(!rogersTrackingFileName.isEmpty())
+            ReadRogersExtrapolation(spill_number, reconstructed_event_number);
         
         
         outputTree->Fill();
@@ -1328,6 +1329,11 @@ bool BetterReadMAUS::check_momentum_loss(){
 
 
 void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
+
+
+    some_spill = some_spill + 1;
+
+
     /*
      * Chris Rogers has extrapolated tracks from TKU station 5
      * back to TOF1 and through the diffuser. We want to add
@@ -1338,9 +1344,12 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
     
     //std::cout << "Reading Chris Rogers extrapolated tracks from file " << rogersTrackingFileName.toStdString() << "...";
     
-    rogers_z_diffuser1 = 13961.7; // z of most upstream plane of diffuser
-    rogers_z_diffuser2 = 13942.4;  // z of the middle of the diffuser
-    rogers_z_diffuser3 = 13963.0;
+    rogers_z_diffuser1 = 13720.0; // z of most upstream plane of diffuser
+    rogers_z_diffuser2 = 13730.0;  // z of the middle of the diffuser
+    rogers_z_diffuser3 = 13740.0;
+
+    double rogers_z_tof1_ds = 12929.6;
+    double rogers_z_tof1_us = 12904.4;
     
     QFile file(rogersTrackingFileName);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
@@ -1357,17 +1366,33 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
     bool gotDiffuser3 = false;
     bool done = false;
     
-    while(!done && !in.atEnd()){
+    while(!done){
+
         QString line = in.readLine();
         
+        std::cout << "Looking for spill " << some_spill << " and event " << some_event << "\n";
+        if(in.atEnd()){
+            break;
+        }
+
+
         if(!line.contains("#")){
             // the line gives us some tracking info...
             QStringList list = line.split(" ", QString::SkipEmptyParts);
             
+
+            std::cout << " ... considering tracked spill " << list.at(0).toInt() << ", event  " << list.at(1).toInt() << "\n";
+
             // is this the spill and event we're looking for?
             if(list.at(0).toInt() == some_spill && list.at(1).toInt() == some_event){
+
+                std::cout << " -----> MATCH!\n";
+
+
+
                 // now we've got one of four lines associated with the (spill, event) of interest
-                if(list.at(5).toDouble() == 12904.4){
+                if(list.at(5).toDouble() == rogers_z_tof1_us){
+                    std::cout << " ----------> Got TOF1 u/s \n";
                     gotTOF1_us = true;
                     rogers_tof01_us = list.at(2).toDouble();
                     rogers_x_tof1_us = list.at(3).toDouble();
@@ -1376,8 +1401,9 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
                     rogers_py_tof1_us = list.at(7).toDouble();
                     rogers_pz_tof1_us = list.at(8).toDouble();
                 }
-                else if(list.at(5).toDouble() == 12954.4){
+                else if(list.at(5).toDouble() == rogers_z_tof1_ds){
                     // this is TOF1 tracked data
+                    std::cout << " ----------> Got TOF1 d/s \n";
                     gotTOF1_ds = true;
                     rogers_tof01_ds = list.at(2).toDouble();
                     rogers_x_tof1_ds = list.at(3).toDouble();
@@ -1387,6 +1413,7 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
                     rogers_pz_tof1_ds = list.at(8).toDouble();
                 }
                 else if(list.at(5).toDouble() == rogers_z_diffuser1){
+                    std::cout << " ----------> Got Diffuser 1 \n";
                     gotDiffuser1 = true;
                     rogers_x_diffuser1 = list.at(3).toDouble();
                     rogers_y_diffuser1 = list.at(4).toDouble();
@@ -1395,6 +1422,7 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
                     rogers_pz_diffuser1 = list.at(8).toDouble();
                 }
                 else if(list.at(5).toDouble() == rogers_z_diffuser2){
+                    std::cout << " ----------> Got Diffuser 2 \n";
                     gotDiffuser2 = true;
                     rogers_x_diffuser2 = list.at(3).toDouble();
                     rogers_y_diffuser2 = list.at(4).toDouble();
@@ -1402,7 +1430,8 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
                     rogers_py_diffuser2 = list.at(7).toDouble();
                     rogers_pz_diffuser2 = list.at(8).toDouble();
                 }
-                else{
+                else if(list.at(5).toDouble() == rogers_z_diffuser3){
+                    std::cout << " ----------> Got Diffuser 3 \n";
                     gotDiffuser3 = true;
                     rogers_x_diffuser3 = list.at(3).toDouble();
                     rogers_y_diffuser3 = list.at(4).toDouble();
@@ -1410,16 +1439,38 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
                     rogers_py_diffuser3 = list.at(7).toDouble();
                     rogers_pz_diffuser3 = list.at(8).toDouble();
                 }
+                else{
+                    std::cout << " In Rogers extrapolation got z = " << list.at(5).toDouble()  << "\n";
+                }
                 
             }
-            
+            else if(list.at(0).toInt() == some_spill && list.at(1).toInt() > some_event){
+          //      // event isn't in file, so call it quits:
+                cut_diffuser = 0;
+          //      file_line = in.pos() - 1;
+          //      if(file_line <= 0){
+          //          file_line = 0;
+          //      }
+                done = true;
+            }
+            else if(list.at(0).toInt() > some_spill){// && list.at(1).toInt() == some_event)
+                // spill isn't in file, so call it quits:
+                cut_diffuser = 0;
+          //      file_line = in.pos() - qint64(1);
+          //      if(file_line <= 0){
+          //          file_line = 0;
+          //      }
+               done = true;
+            }
+
+
             // are we done?
-            if(gotTOF1_us && gotTOF1_ds && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
-                
+            //if(gotTOF1_us && gotTOF1_ds && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
+            if(gotTOF1_ds && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
                 double r1 = TMath::Sqrt(rogers_x_diffuser1*rogers_x_diffuser1 + rogers_y_diffuser1*rogers_y_diffuser1);
                 double r2 = TMath::Sqrt(rogers_x_diffuser2*rogers_x_diffuser2 + rogers_y_diffuser2*rogers_y_diffuser2);
                 double r3 = TMath::Sqrt(rogers_x_diffuser3*rogers_x_diffuser3 + rogers_y_diffuser3*rogers_y_diffuser3);
-                double max_radius = 90.0;
+                double max_radius = 95.0;
                 
                 file_line = in.pos();
                 if(r1 <= max_radius && r2 <= max_radius && r3 <= max_radius){
@@ -1432,6 +1483,9 @@ void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
                 done = true;
                 //std::cout << "... done\n";
             }
+        }
+        if(in.atEnd()){
+            done = true;
         }
     }
     
@@ -1970,10 +2024,12 @@ void BetterReadMAUS::readMCParticleEvent(){
                 field = hit.GetBField();
                 mc_tku_s5_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
             }
-            else if(position.z() == mc_diffuser_z1 - diffuser_dz && position.z() <= mc_diffuser_z1 + diffuser_dz){
+            else if(position.z() >= mc_diffuser_z1 - diffuser_dz && position.z() <= mc_diffuser_z1 + diffuser_dz){
                 if(testping){
                     std::cout << "ping, diff1 with z = " << position.z() << "\n";
                 }
+                std::cout << "ping, diff1 with z = " << position.z() << " and testping = " << testping << "\n";
+
                 momentum = hit.GetMomentum();
                 
                 mc_diffuser_x1 = position.x();
