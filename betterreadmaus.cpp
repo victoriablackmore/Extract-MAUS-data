@@ -1024,7 +1024,17 @@ void BetterReadMAUS::particle_at_TOF1(){
 void BetterReadMAUS::particle_at_tracker(){
     int tracker, station;
     MAUS::ThreeVector position;
-    
+
+
+    std::cout << "Found track? Using: \n"
+              << "         get_mean_field_up() = " << scifi_event->get_mean_field_up() << "\n"
+              << "         get_range_field_up() = " << scifi_event->get_range_field_up() << "\n"
+              << "         get_variance_field_up()  = " << scifi_event->get_variance_field_up() << "\n\n"
+              << "         get_mean_field_down() = " << scifi_event->get_mean_field_down() << "\n"
+              << "         get_range_field_down() = " << scifi_event->get_range_field_down() << "\n"
+              << "         get_variance_field_down()  = " << scifi_event->get_variance_field_down() << "\n";
+
+
     std::vector<MAUS::SciFiTrack*> tracks = scifi_event->scifitracks();
     std::vector<MAUS::SciFiHelicalPRTrack*> pr_tracks = scifi_event->helicalprtracks();
     
@@ -1959,6 +1969,8 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s1_p = TMath::Sqrt(mc_tku_s1_px*mc_tku_s1_px + mc_tku_s1_py*mc_tku_s1_py + mc_tku_s1_pz*mc_tku_s1_pz);
                 field = hit.GetBField();
                 mc_tku_s1_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+
+                std::cout << "Field at TKU station 1 = " << mc_tku_s1_B << "\n";
             }
             else if(position.z() >= mc_tku_s2_z - dz && position.z() <= mc_tku_s2_z + dz){
                 if(testping){
@@ -1975,6 +1987,8 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s2_p = TMath::Sqrt(mc_tku_s2_px*mc_tku_s2_px + mc_tku_s2_py*mc_tku_s2_py + mc_tku_s2_pz*mc_tku_s2_pz);
                 field = hit.GetBField();
                 mc_tku_s2_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+
+                std::cout << "Field at TKU station 2 = " << mc_tku_s2_B << "\n";
             }
             else if(position.z() >= mc_tku_s3_z - dz && position.z() <= mc_tku_s3_z + dz){
                 if(testping){
@@ -1991,6 +2005,8 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s3_p = TMath::Sqrt(mc_tku_s3_px*mc_tku_s3_px + mc_tku_s3_py*mc_tku_s3_py + mc_tku_s3_pz*mc_tku_s3_pz);
                 field = hit.GetBField();
                 mc_tku_s3_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+
+                std::cout << "Field at TKU station 3 = " << mc_tku_s3_B << "\n";
             }
             else if(position.z() >= mc_tku_s4_z - dz && position.z() <= mc_tku_s4_z + dz){
                 if(testping){
@@ -2007,6 +2023,8 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s4_p = TMath::Sqrt(mc_tku_s4_px*mc_tku_s4_px + mc_tku_s4_py*mc_tku_s4_py + mc_tku_s4_pz*mc_tku_s4_pz);
                 field = hit.GetBField();
                 mc_tku_s4_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+
+                std::cout << "Field at TKU station 4 = " << mc_tku_s4_B << "\n";
             }
             else if(position.z() >= mc_tku_s5_z - dz && position.z() <= mc_tku_s5_z + dz){
                 if(testping){
@@ -2023,6 +2041,8 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s5_p = TMath::Sqrt(mc_tku_s5_px*mc_tku_s5_px + mc_tku_s5_py*mc_tku_s5_py + mc_tku_s5_pz*mc_tku_s5_pz);
                 field = hit.GetBField();
                 mc_tku_s5_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
+
+                std::cout << "Field at TKU station 5 = " << mc_tku_s5_B << "\n";
             }
             else if(position.z() >= mc_diffuser_z1 - diffuser_dz && position.z() <= mc_diffuser_z1 + diffuser_dz){
                 if(testping){
