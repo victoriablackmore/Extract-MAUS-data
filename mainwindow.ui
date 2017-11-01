@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>385</width>
-    <height>452</height>
+    <height>418</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -257,34 +257,6 @@
       </item>
       <item>
        <widget class="QToolButton" name="btn_CDB_summary">
-        <property name="text">
-         <string>...</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5">
-      <item>
-       <widget class="QLabel" name="label_4">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Diffuser tracking file:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="line_diffuser_tracking">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="btn_diffuser_tracking">
         <property name="text">
          <string>...</string>
         </property>

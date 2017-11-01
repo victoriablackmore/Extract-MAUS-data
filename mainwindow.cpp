@@ -19,7 +19,7 @@ void MainWindow::setup_ui(){
     connect(ui->btn_outputFile, SIGNAL(clicked()), SLOT(choose_save_file()));
     connect(ui->btn_go, SIGNAL(clicked()), SLOT(getData()));
     connect(ui->btn_CDB_summary, SIGNAL(clicked()), SLOT(choose_CDB_file()));
-    connect(ui->btn_diffuser_tracking, SIGNAL(clicked()), SLOT(choose_diffuser_file()));
+   // connect(ui->btn_diffuser_tracking, SIGNAL(clicked()), SLOT(choose_diffuser_file()));
     connect(ui->btn_isData, SIGNAL(clicked()), SLOT(update_TOF()));
     connect(ui->btn_isMC, SIGNAL(clicked()), SLOT(update_TOF()));
     connect(ui->btn_raynerCalibrationFile, SIGNAL(clicked()), SLOT(choose_rayner_calibration_file()));
@@ -102,6 +102,7 @@ void MainWindow::choose_rayner_calibration_file(){
     }
 }
 
+/*
 void MainWindow::choose_diffuser_file(){
     QStringList filenames;
     QFileDialog dialog(this);
@@ -116,6 +117,7 @@ void MainWindow::choose_diffuser_file(){
         ui->line_diffuser_tracking->setText(filenames.first());
     }
 }
+*/
 
 void MainWindow::getData(){
     double min_tof = ui->dbl_minTOF->value();
@@ -136,7 +138,7 @@ void MainWindow::getData(){
         calibrationFileName = ui->line_raynerCalibrationFile->text();
     }
 
-    QString rogersTrackingFileName  = ui->line_diffuser_tracking->text();
+ //   QString rogersTrackingFileName  = ui->line_diffuser_tracking->text();
 
     QVector<double> magnet_currents = read_CDB_currents();
     double q7_current = magnet_currents.at(0);
@@ -166,7 +168,7 @@ void MainWindow::getData(){
 
         better_read_data->SetBeamlineParameters(min_tof, max_tof, sim_ele_path, data_ele_tof, q7_current, q8_current, q9_current, q7_zPosition, q8_zPosition, q9_zPosition, tof0_zPosition, tof1_zPosition);
 
-        better_read_data->Read(inputFilename, outputFilename, calibrationFileName, rogersTrackingFileName);
+        better_read_data->Read(inputFilename, outputFilename, calibrationFileName); //, rogersTrackingFileName);
     }
 }
 

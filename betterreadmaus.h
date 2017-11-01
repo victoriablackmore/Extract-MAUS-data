@@ -19,6 +19,7 @@
 #include <TH2.h>
 #include <TH1.h>
 #include <TCanvas.h>
+#include <TLorentzVector.h>
 
 
 #include <DataStructure/Spill.hh>
@@ -38,6 +39,7 @@
 #include <DataStructure/ThreeVector.hh>
 #include <DataStructure/VirtualHit.hh>
 #include <DataStructure/MCEvent.hh>
+#include <DataStructure/GlobalEvent.hh>
 
 
 
@@ -46,7 +48,7 @@ class BetterReadMAUS
 public:
     BetterReadMAUS();
     
-    void Read(QString fileToOpen, QString fileToSaveAs, QString calibrationConstantsFile, QString trackingFileName);
+    void Read(QString fileToOpen, QString fileToSaveAs, QString calibrationConstantsFile);
     void SetBeamlineParameters(double min_tof, double max_tof, double sim_ele_path, double data_ele_tof,
                                double q7_current, double q8_current, double q9_current, double q7_zPosition,
                                double q8_zPosition, double q9_zPosition,
@@ -59,6 +61,9 @@ public:
     void SetDataType(bool thisIsData, bool thisIsMCRecon, bool thisIsMCTruth);
     
 private:
+    int multi_track_counter;
+
+
     bool isData, isMCRecon, isMCTruth;
 
     MAUS::Spill *spill;
@@ -82,7 +87,7 @@ private:
     TTree *outputTree;
     void define_root_file(QString saveAs);
     
-    QString rogersTrackingFileName;
+    //QString rogersTrackingFileName;
     
     
     int reconstructed_event_number, spill_number;
@@ -91,7 +96,12 @@ private:
     int mc_spill_counter;
     bool mc_spills;
     bool data_spills;
+
+    int number_of_TOF0_spacepoints;
+    int number_of_TOF1_spacepoints;
+    int number_of_TKU_tracks;
     
+    double time_of_flight, normalised_time_of_flight;
     
     double TOF0_xPixel, TOF0_yPixel; // (x, y) positions of hits
     double TOF0_x, TOF0_y, TOF0_z; // (x, y) positions of hits based on PMT times
@@ -114,17 +124,17 @@ private:
     double TOF1_vertical_slab_tMinus, TOF1_vertical_slab_tPlus;
     int TOF1_goodPMTPosition;
     
-    double TKU_plane1_x, TKU_plane1_y, TKU_plane1_z;
-    double TKU_plane2_x, TKU_plane2_y, TKU_plane2_z;
-    double TKU_plane3_x, TKU_plane3_y, TKU_plane3_z;
-    double TKU_plane4_x, TKU_plane4_y, TKU_plane4_z;
-    double TKU_plane5_x, TKU_plane5_y, TKU_plane5_z;
+    double TKU_plane1_x, TKU_plane1_y, TKU_plane1_z, TKU_plane1_r;
+    double TKU_plane2_x, TKU_plane2_y, TKU_plane2_z, TKU_plane2_r;
+    double TKU_plane3_x, TKU_plane3_y, TKU_plane3_z, TKU_plane3_r;
+    double TKU_plane4_x, TKU_plane4_y, TKU_plane4_z, TKU_plane4_r;
+    double TKU_plane5_x, TKU_plane5_y, TKU_plane5_z, TKU_plane5_r;
     
-    double TKU_plane1_px, TKU_plane1_py, TKU_plane1_pz, TKU_plane1_p;
-    double TKU_plane2_px, TKU_plane2_py, TKU_plane2_pz, TKU_plane2_p;
-    double TKU_plane3_px, TKU_plane3_py, TKU_plane3_pz, TKU_plane3_p;
-    double TKU_plane4_px, TKU_plane4_py, TKU_plane4_pz, TKU_plane4_p;
-    double TKU_plane5_px, TKU_plane5_py, TKU_plane5_pz, TKU_plane5_p;
+    double TKU_plane1_px, TKU_plane1_py, TKU_plane1_pz, TKU_plane1_p, TKU_plane1_pt;
+    double TKU_plane2_px, TKU_plane2_py, TKU_plane2_pz, TKU_plane2_p, TKU_plane2_pt;
+    double TKU_plane3_px, TKU_plane3_py, TKU_plane3_pz, TKU_plane3_p, TKU_plane3_pt;
+    double TKU_plane4_px, TKU_plane4_py, TKU_plane4_pz, TKU_plane4_p, TKU_plane4_pt;
+    double TKU_plane5_px, TKU_plane5_py, TKU_plane5_pz, TKU_plane5_p, TKU_plane5_pt;
     
     double TKU_plane1_pull, TKU_plane2_pull, TKU_plane3_pull, TKU_plane4_pull, TKU_plane5_pull;
     
@@ -134,32 +144,19 @@ private:
     double TKU_plane4_x_error, TKU_plane4_y_error, TKU_plane4_px_error, TKU_plane4_py_error, TKU_plane4_kappa_error;
     double TKU_plane5_x_error, TKU_plane5_y_error, TKU_plane5_px_error, TKU_plane5_py_error, TKU_plane5_kappa_error;
     
+    
     double TKU_Pvalue;
     double TKU_chiSquare;
+    double TKU_chiSquare_per_ndof;
+    int TKU_ndof;
     double TKU_patternRecognition_R;
     double TKU_patternRecognition_dipAngle;
     double TKU_patternRecognition_x0;
     double TKU_patternRecognition_y0;
     double TKU_assumed_field;
-    int TKU_charge;
-    int TKU_goodParticle;
-    int TKU_station_hits; // 3, 4 or 5 stations hit in track
-    
-    int goodParticle;
-    int goodRaynerReconstruction;
-    int goodTimeOfFlight;
-    int all_detectors_hit;
-    int only_hit_at_TOF0, only_hit_at_TOF1, only_track_in_TKU;
-    int goodPValue;
-    
-    double particle_mass;
-    int good_mass_cut;
+    double TKU_charge;
     
     
-    
-    double momentum_loss_cut_lower_limit, momentum_loss_cut_upper_limit;
-    int good_momentum_loss_cut;
-    bool check_momentum_loss();
     
     
     QVector<double> TOF0_horizontal_calibration;
@@ -200,23 +197,12 @@ private:
     void calculate_particle_mass();
     
     
-    
-    
-    
-    // variables used for Rogers particle tracking
-    void ReadRogersExtrapolation(int some_spill, int some_event);
-    void reset_rogers_tracking();
-    int rogers_spill, rogers_event;
-    double rogers_tof01_ds, rogers_x_tof1_ds, rogers_y_tof1_ds, rogers_px_tof1_ds, rogers_py_tof1_ds, rogers_pz_tof1_ds;
-    double rogers_tof01_us, rogers_x_tof1_us, rogers_y_tof1_us, rogers_px_tof1_us, rogers_py_tof1_us, rogers_pz_tof1_us;
-    double rogers_x_diffuser1, rogers_y_diffuser1, rogers_z_diffuser1, rogers_px_diffuser1, rogers_py_diffuser1, rogers_pz_diffuser1;
-    double rogers_x_diffuser2, rogers_y_diffuser2, rogers_z_diffuser2, rogers_px_diffuser2, rogers_py_diffuser2, rogers_pz_diffuser2;
-    double rogers_x_diffuser3, rogers_y_diffuser3, rogers_z_diffuser3, rogers_px_diffuser3, rogers_py_diffuser3, rogers_pz_diffuser3;
-    int cut_diffuser;
-    qint64 file_line;
-    
-    
-    
+    // variables used for Globals diffuser hits
+    double diffuser_x, diffuser_y, diffuser_z, diffuser_r;
+    double diffuser_px, diffuser_py, diffuser_pz, diffuser_p, diffuser_pt;
+    void reset_diffuser_variables();
+
+
     
     
     
@@ -244,6 +230,22 @@ private:
     double mc_diffuser_x1, mc_diffuser_y1, mc_diffuser_z1, mc_diffuser_px1, mc_diffuser_py1, mc_diffuser_pz1, mc_diffuser_p1, mc_diffuser_B1;
     double mc_diffuser_x2, mc_diffuser_y2, mc_diffuser_z2, mc_diffuser_px2, mc_diffuser_py2, mc_diffuser_pz2, mc_diffuser_p2, mc_diffuser_B2;
     double mc_diffuser_x3, mc_diffuser_y3, mc_diffuser_z3, mc_diffuser_px3, mc_diffuser_py3, mc_diffuser_pz3, mc_diffuser_p3, mc_diffuser_B3;
+
+
+
+
+
+
+    void read_globals();
+    MAUS::GlobalEvent* global_event;
+
+    void set_cut_values();
+    void check_cuts();
+    bool muon_stays_in_tracker();
+    double min_tof, max_tof, min_normalised_tof, max_normalised_tof, max_chindof, max_tku_radius, min_tku_radius, max_diffuser, mean_dP, min_dP, max_dP; //  beamlineTracking_sim_ele_path, beamlineTracking_data_ele_tof
+    
+    int cut_tof, cut_normalised_tof, cut_diffuser, cut_chindof, cut_tku_r, cut_one_tof0;
+    int cut_one_tof1, cut_one_track, cut_tof_p, cut_allPassed, cut_allButDiffuserPassed;
 };
 
 #endif // BETTERREADMAUS_H

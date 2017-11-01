@@ -71,10 +71,6 @@ public:
     QLabel *label_3;
     QLineEdit *line_CDB_summary;
     QToolButton *btn_CDB_summary;
-    QHBoxLayout *horizontalLayout_5;
-    QLabel *label_4;
-    QLineEdit *line_diffuser_tracking;
-    QToolButton *btn_diffuser_tracking;
     QPushButton *btn_go;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
@@ -84,7 +80,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
-        MainWindow->resize(385, 452);
+        MainWindow->resize(385, 418);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         verticalLayout_2 = new QVBoxLayout(centralWidget);
@@ -281,27 +277,6 @@ public:
 
         verticalLayout_2->addLayout(horizontalLayout_6);
 
-        horizontalLayout_5 = new QHBoxLayout();
-        horizontalLayout_5->setSpacing(6);
-        horizontalLayout_5->setObjectName(QStringLiteral("horizontalLayout_5"));
-        label_4 = new QLabel(centralWidget);
-        label_4->setObjectName(QStringLiteral("label_4"));
-
-        horizontalLayout_5->addWidget(label_4);
-
-        line_diffuser_tracking = new QLineEdit(centralWidget);
-        line_diffuser_tracking->setObjectName(QStringLiteral("line_diffuser_tracking"));
-
-        horizontalLayout_5->addWidget(line_diffuser_tracking);
-
-        btn_diffuser_tracking = new QToolButton(centralWidget);
-        btn_diffuser_tracking->setObjectName(QStringLiteral("btn_diffuser_tracking"));
-
-        horizontalLayout_5->addWidget(btn_diffuser_tracking);
-
-
-        verticalLayout_2->addLayout(horizontalLayout_5);
-
         btn_go = new QPushButton(centralWidget);
         btn_go->setObjectName(QStringLiteral("btn_go"));
 
@@ -376,14 +351,6 @@ public:
         line_CDB_summary->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, a default geometry file will be used from run 7469.</p><p>This file comes with reconstructed data/MC in the geo-##### folder, where #### is the run number.</p></body></html>", 0));
 #endif // QT_NO_TOOLTIP
         btn_CDB_summary->setText(QApplication::translate("MainWindow", "...", 0));
-#ifndef QT_NO_TOOLTIP
-        label_4->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.</p></body></html>", 0));
-#endif // QT_NO_TOOLTIP
-        label_4->setText(QApplication::translate("MainWindow", "Diffuser tracking file:", 0));
-#ifndef QT_NO_TOOLTIP
-        line_diffuser_tracking->setToolTip(QApplication::translate("MainWindow", "<html><head/><body><p>If blank, no tracking file will be used. Tracking variables will not appear in the extracted ROOT file.</p></body></html>", 0));
-#endif // QT_NO_TOOLTIP
-        btn_diffuser_tracking->setText(QApplication::translate("MainWindow", "...", 0));
         btn_go->setText(QApplication::translate("MainWindow", "Read MAUS file and save as .root", 0));
     } // retranslateUi
 

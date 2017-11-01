@@ -38,6 +38,25 @@ void BetterReadMAUS::SetDataType(bool thisIsData, bool thisIsMCRecon, bool thisI
                                 // be the option in case it's needed in the future
 }
 
+void BetterReadMAUS::set_cut_values(){
+   
+    min_tof = 27.0;
+    max_tof = 33.0;
+    
+    min_normalised_tof = 1.0;
+    max_normalised_tof = 6.0;
+    
+    max_chindof = 4.0; //2.5;
+    max_tku_radius = 150.0;
+    min_tku_radius = 0.0;
+    max_diffuser = 80.0;
+    
+    // for tku P vs tof selection:
+    mean_dP = 20.0; // difference in total momentum at u/s side of TOF1 and TKU station 1
+    min_dP = mean_dP - 22.0;
+    max_dP = mean_dP + 22.0;
+}
+
 
 void BetterReadMAUS::print_tof_plots(){
     std::string saveAs = "qualityCheck.pdf(";
@@ -79,22 +98,33 @@ void BetterReadMAUS::reset_particle_variables(){
     reset_TOF0_variables();
     reset_TOF1_variables();
     reset_TKU_variables();
-    reset_rogers_tracking();
+    reset_diffuser_variables();
     
     reconstructed_event_number = -1;
     spill_number = -1;
     
-    goodParticle = 0;
-    goodRaynerReconstruction = 0;
-    goodTimeOfFlight = 0;
-    all_detectors_hit = 0;
-    good_mass_cut = 0;
+    cut_tof = 0;
+    cut_normalised_tof = 0;
+    cut_diffuser = 0;
+    cut_chindof = 0;
+    cut_tku_r = 0;
+    cut_one_tof0 = 0;
+    cut_one_tof1 = 0;
+    cut_one_track = 0;
+    cut_tof_p = 0;
+    cut_allPassed = 0;
+    cut_allButDiffuserPassed = 0;
     
-    particle_mass = TMath::Infinity();
+    
+    number_of_TOF0_spacepoints = 0;
+    number_of_TOF1_spacepoints = 0;
+    number_of_TKU_tracks = 0;
+    
+    time_of_flight = TMath::Infinity();
+    normalised_time_of_flight = TMath::Infinity();
 }
 
 void BetterReadMAUS::reset_TOF0_variables(){
-    TOF0_goodPMTPosition = 0;
     TOF0_xPixel = TMath::Infinity();
     TOF0_yPixel = TMath::Infinity();
     TOF0_x = TMath::Infinity();
@@ -111,12 +141,9 @@ void BetterReadMAUS::reset_TOF0_variables(){
     TOF0_py = TMath::Infinity();
     TOF0_pz = TMath::Infinity();
     TOF0_p = TMath::Infinity();
-    only_hit_at_TOF0 = 0;
-    
 }
 
 void BetterReadMAUS::reset_TOF1_variables(){
-    TOF1_goodPMTPosition = 0;
     TOF1_xPixel = TMath::Infinity();
     TOF1_yPixel = TMath::Infinity();
     TOF1_x = TMath::Infinity();
@@ -134,8 +161,6 @@ void BetterReadMAUS::reset_TOF1_variables(){
     TOF1_py = TMath::Infinity();
     TOF1_pz = TMath::Infinity();
     TOF1_p = TMath::Infinity();
-    
-    only_hit_at_TOF1 = 0;
 }
 
 void BetterReadMAUS::reset_TKU_variables(){
@@ -147,6 +172,8 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane1_py = TMath::Infinity();
     TKU_plane1_pz = TMath::Infinity();
     TKU_plane1_p = TMath::Infinity();
+    TKU_plane1_r = TMath::Infinity();
+    TKU_plane1_pt = TMath::Infinity();
     
     TKU_plane1_x_error = TMath::Infinity();
     TKU_plane1_y_error = TMath::Infinity();
@@ -161,6 +188,8 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane2_py = TMath::Infinity();
     TKU_plane2_pz = TMath::Infinity();
     TKU_plane2_p = TMath::Infinity();
+    TKU_plane2_r = TMath::Infinity();
+    TKU_plane2_pt = TMath::Infinity();
     
     TKU_plane2_x_error = TMath::Infinity();
     TKU_plane2_y_error = TMath::Infinity();
@@ -175,6 +204,8 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane3_py = TMath::Infinity();
     TKU_plane3_pz = TMath::Infinity();
     TKU_plane3_p = TMath::Infinity();
+    TKU_plane3_r = TMath::Infinity();
+    TKU_plane3_pt = TMath::Infinity();
     
     TKU_plane3_x_error = TMath::Infinity();
     TKU_plane3_y_error = TMath::Infinity();
@@ -189,6 +220,8 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane4_py = TMath::Infinity();
     TKU_plane4_pz = TMath::Infinity();
     TKU_plane4_p = TMath::Infinity();
+    TKU_plane4_r = TMath::Infinity();
+    TKU_plane4_pt = TMath::Infinity();
     
     TKU_plane4_x_error = TMath::Infinity();
     TKU_plane4_y_error = TMath::Infinity();
@@ -203,6 +236,8 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane5_py = TMath::Infinity();
     TKU_plane5_pz = TMath::Infinity();
     TKU_plane5_p = TMath::Infinity();
+    TKU_plane5_r = TMath::Infinity();
+    TKU_plane5_pt = TMath::Infinity();
     
     TKU_plane5_x_error = TMath::Infinity();
     TKU_plane5_y_error = TMath::Infinity();
@@ -210,8 +245,8 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane5_py_error = TMath::Infinity();
     TKU_plane5_kappa_error = TMath::Infinity();
     
-    TKU_Pvalue = TMath::Infinity();
     TKU_chiSquare = TMath::Infinity();
+    TKU_ndof = -1;
     TKU_patternRecognition_dipAngle = TMath::Infinity();
     TKU_patternRecognition_R = TMath::Infinity();
     TKU_patternRecognition_x0 = TMath::Infinity();
@@ -223,12 +258,8 @@ void BetterReadMAUS::reset_TKU_variables(){
     TKU_plane4_pull = TMath::Infinity();
     TKU_plane5_pull = TMath::Infinity();
     
-    TKU_station_hits = 0;
-    TKU_goodParticle = 0;
-    only_track_in_TKU = 0;
     TKU_charge = -5;
     TKU_assumed_field = TMath::Infinity();
-    goodPValue = 0;
 }
 
 void BetterReadMAUS::readCalibrationFile(QString calibrationFile){
@@ -491,7 +522,13 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     
     outputTree->Branch("SpillNumber", &spill_number, "SpillNumber/I");
     outputTree->Branch("ReconstructedEventNumber", &reconstructed_event_number, "ReconstructedEventNumber/I");
+
+    outputTree->Branch("num_TOF0_spacepoints", &number_of_TOF0_spacepoints, "num_TOF0_spacepoints/I");
+    outputTree->Branch("num_TOF1_spacepoints", &number_of_TOF1_spacepoints, "num_TOF1_spacepoints/I");
+    outputTree->Branch("num_TKU_tracks", &number_of_TKU_tracks, "num_TKU_tracks/I");
     
+    
+    // TOF0
     outputTree->Branch("TOF0_x", &TOF0_x, "TOF0_x/D");
     outputTree->Branch("TOF0_y", &TOF0_y, "TOF0_y/D");
     outputTree->Branch("TOF0_z", &TOF0_z, "TOF0_z/D");
@@ -500,7 +537,6 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TOF0_py", &TOF0_py, "TOF0_py/D");
     outputTree->Branch("TOF0_pz", &TOF0_pz, "TOF0_pz/D");
     outputTree->Branch("TOF0_p", &TOF0_p, "TOF0_p/D");
-    
     
     outputTree->Branch("TOF0_xPixel", &TOF0_xPixel, "TOF0_xPixel/D");
     outputTree->Branch("TOF0_yPixel", &TOF0_yPixel, "TOF0_yPixel/D");
@@ -514,6 +550,8 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TOF0_xPrime", &TOF0_xPrime, "TOF0_xPrime/D");
     outputTree->Branch("TOF0_yPrime", &TOF0_yPrime, "TOF0_yPrime/D");
     
+    
+    // TOF1
     outputTree->Branch("TOF1_x", &TOF1_x, "TOF1_x/D");
     outputTree->Branch("TOF1_xPixel", &TOF1_xPixel, "TOF1_xPixel/D");
     outputTree->Branch("TOF1_y", &TOF1_y, "TOF1_y/D");
@@ -533,13 +571,35 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TOF1_xPrime", &TOF1_xPrime, "TOF1_xPrime/D");
     outputTree->Branch("TOF1_yPrime", &TOF1_yPrime, "TOF1_yPrime/D");
     
+    // Time of flight
+    outputTree->Branch("time_of_flight", &time_of_flight, "time_of_flight/D");
+    outputTree->Branch("normalised_time_of_flight", &normalised_time_of_flight, "normalised_time_of_flight/D");
+
+    
+    // Diffuser -- values taken from Globals
+    outputTree->Branch("diffuser_x", &diffuser_x, "diffuser_x/D");
+    outputTree->Branch("diffuser_y", &diffuser_y, "diffuser_y/D");
+    outputTree->Branch("diffuser_r", &diffuser_r, "diffuser_r/D");
+    outputTree->Branch("diffuser_z", &diffuser_z, "diffuser_z/D");
+    
+    outputTree->Branch("diffuser_px", &diffuser_px, "diffuser_px/D");
+    outputTree->Branch("diffuser_py", &diffuser_py, "diffuser_py/D");
+    outputTree->Branch("diffuser_pz", &diffuser_pz, "diffuser_pz/D");
+    outputTree->Branch("diffuser_pt", &diffuser_pt, "diffuser_pt/D");
+    outputTree->Branch("diffuser_p", &diffuser_p, "diffuser_p/D");
+
+    
+    // TKU
     outputTree->Branch("TKU_s1_x", &TKU_plane1_x, "TKU_s1_x/D"); // station 1
     outputTree->Branch("TKU_s1_y", &TKU_plane1_y, "TKU_s1_y/D");
+    outputTree->Branch("TKU_s1_r", &TKU_plane1_r, "TKU_s1_r/D");
     outputTree->Branch("TKU_s1_z", &TKU_plane1_z, "TKU_s1_z/D");
     outputTree->Branch("TKU_s1_px", &TKU_plane1_px, "TKU_s1_px/D");
     outputTree->Branch("TKU_s1_py", &TKU_plane1_py, "TKU_s1_py/D");
     outputTree->Branch("TKU_s1_pz", &TKU_plane1_pz, "TKU_s1_pz/D");
+    outputTree->Branch("TKU_s1_pt", &TKU_plane1_pt, "TKU_s1_pt/D");
     outputTree->Branch("TKU_s1_p", &TKU_plane1_p, "TKU_s1_p/D");
+    
     outputTree->Branch("TKU_s1_pull", &TKU_plane1_pull, "TKU_s1_pull/D");
     outputTree->Branch("TKU_s1_x_error", &TKU_plane1_x_error, "TKU_s1_x_error/D");
     outputTree->Branch("TKU_s1_y_error", &TKU_plane1_y_error, "TKU_s1_y_error/D");
@@ -547,13 +607,17 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s1_py_error", &TKU_plane1_py_error, "TKU_s1_py_error/D");
     outputTree->Branch("TKU_s1_kappa_error", &TKU_plane1_kappa_error, "TKU_s1_kappa_error/D");
     
-    outputTree->Branch("TKU_s2_x", &TKU_plane2_x, "TKU_s2_x/D"); // station 1
+    outputTree->Branch("TKU_s2_x", &TKU_plane2_x, "TKU_s2_x/D"); // station 2
     outputTree->Branch("TKU_s2_y", &TKU_plane2_y, "TKU_s2_y/D");
+    outputTree->Branch("TKU_s2_r", &TKU_plane2_r, "TKU_s2_r/D");
     outputTree->Branch("TKU_s2_z", &TKU_plane2_z, "TKU_s2_z/D");
+    
     outputTree->Branch("TKU_s2_px", &TKU_plane2_px, "TKU_s2_px/D");
     outputTree->Branch("TKU_s2_py", &TKU_plane2_py, "TKU_s2_py/D");
     outputTree->Branch("TKU_s2_pz", &TKU_plane2_pz, "TKU_s2_pz/D");
+    outputTree->Branch("TKU_s2_pt", &TKU_plane2_pt, "TKU_s2_pt/D");
     outputTree->Branch("TKU_s2_p", &TKU_plane2_p, "TKU_s2_p/D");
+    
     outputTree->Branch("TKU_s2_pull", &TKU_plane2_pull, "TKU_s2_pull/D");
     outputTree->Branch("TKU_s2_x_error", &TKU_plane2_x_error, "TKU_s2_x_error/D");
     outputTree->Branch("TKU_s2_y_error", &TKU_plane2_y_error, "TKU_s2_y_error/D");
@@ -561,13 +625,17 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s2_py_error", &TKU_plane2_py_error, "TKU_s2_py_error/D");
     outputTree->Branch("TKU_s2_kappa_error", &TKU_plane2_kappa_error, "TKU_s2_kappa_error/D");
     
-    outputTree->Branch("TKU_s3_x", &TKU_plane3_x, "TKU_s3_x/D"); // station 1
+    outputTree->Branch("TKU_s3_x", &TKU_plane3_x, "TKU_s3_x/D"); // station 3
     outputTree->Branch("TKU_s3_y", &TKU_plane3_y, "TKU_s3_y/D");
+    outputTree->Branch("TKU_s3_r", &TKU_plane3_r, "TKU_s3_r/D");
     outputTree->Branch("TKU_s3_z", &TKU_plane3_z, "TKU_s3_z/D");
+    
     outputTree->Branch("TKU_s3_px", &TKU_plane3_px, "TKU_s3_px/D");
     outputTree->Branch("TKU_s3_py", &TKU_plane3_py, "TKU_s3_py/D");
     outputTree->Branch("TKU_s3_pz", &TKU_plane3_pz, "TKU_s3_pz/D");
+    outputTree->Branch("TKU_s3_pt", &TKU_plane3_pt, "TKU_s3_pt/D");
     outputTree->Branch("TKU_s3_p", &TKU_plane3_p, "TKU_s3_p/D");
+    
     outputTree->Branch("TKU_s3_pull", &TKU_plane3_pull, "TKU_s3_pull/D");
     outputTree->Branch("TKU_s3_x_error", &TKU_plane3_x_error, "TKU_s3_x_error/D");
     outputTree->Branch("TKU_s3_y_error", &TKU_plane3_y_error, "TKU_s3_y_error/D");
@@ -575,13 +643,17 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s3_py_error", &TKU_plane3_py_error, "TKU_s3_py_error/D");
     outputTree->Branch("TKU_s3_kappa_error", &TKU_plane3_kappa_error, "TKU_s3_kappa_error/D");
     
-    outputTree->Branch("TKU_s4_x", &TKU_plane4_x, "TKU_s4_x/D"); // station 1
+    outputTree->Branch("TKU_s4_x", &TKU_plane4_x, "TKU_s4_x/D"); // station 4
     outputTree->Branch("TKU_s4_y", &TKU_plane4_y, "TKU_s4_y/D");
+    outputTree->Branch("TKU_s4_r", &TKU_plane4_r, "TKU_s4_r/D");
     outputTree->Branch("TKU_s4_z", &TKU_plane4_z, "TKU_s4_z/D");
+    
     outputTree->Branch("TKU_s4_px", &TKU_plane4_px, "TKU_s4_px/D");
     outputTree->Branch("TKU_s4_py", &TKU_plane4_py, "TKU_s4_py/D");
     outputTree->Branch("TKU_s4_pz", &TKU_plane4_pz, "TKU_s4_pz/D");
+    outputTree->Branch("TKU_s4_pt", &TKU_plane4_pt, "TKU_s4_pt/D");
     outputTree->Branch("TKU_s4_p", &TKU_plane4_p, "TKU_s4_p/D");
+    
     outputTree->Branch("TKU_s4_pull", &TKU_plane4_pull, "TKU_s4_pull/D");
     outputTree->Branch("TKU_s4_x_error", &TKU_plane4_x_error, "TKU_s4_x_error/D");
     outputTree->Branch("TKU_s4_y_error", &TKU_plane4_y_error, "TKU_s4_y_error/D");
@@ -591,11 +663,15 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     
     outputTree->Branch("TKU_s5_x", &TKU_plane5_x, "TKU_s5_x/D"); // station 1
     outputTree->Branch("TKU_s5_y", &TKU_plane5_y, "TKU_s5_y/D");
+    outputTree->Branch("TKU_s5_r", &TKU_plane5_r, "TKU_s5_r/D");
     outputTree->Branch("TKU_s5_z", &TKU_plane5_z, "TKU_s5_z/D");
+    
     outputTree->Branch("TKU_s5_px", &TKU_plane5_px, "TKU_s5_px/D");
     outputTree->Branch("TKU_s5_py", &TKU_plane5_py, "TKU_s5_py/D");
     outputTree->Branch("TKU_s5_pz", &TKU_plane5_pz, "TKU_s5_pz/D");
+    outputTree->Branch("TKU_s5_pt", &TKU_plane5_pt, "TKU_s5_pt/D");
     outputTree->Branch("TKU_s5_p", &TKU_plane5_p, "TKU_s5_p/D");
+    
     outputTree->Branch("TKU_s5_pull", &TKU_plane5_pull, "TKU_s5_pull/D");
     outputTree->Branch("TKU_s5_x_error", &TKU_plane5_x_error, "TKU_s5_x_error/D");
     outputTree->Branch("TKU_s5_y_error", &TKU_plane5_y_error, "TKU_s5_y_error/D");
@@ -603,89 +679,36 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s5_py_error", &TKU_plane5_py_error, "TKU_s5_py_error/D");
     outputTree->Branch("TKU_s5_kappa_error", &TKU_plane5_kappa_error, "TKU_s5_kappa_error/D");
     
-    outputTree->Branch("TKU_PValue", &TKU_Pvalue, "TKU_PValue/D");
+    
+    outputTree->Branch("TKU_assumed_field", &TKU_assumed_field, "TKU_assumed_field/D");
     outputTree->Branch("TKU_chiSquare", &TKU_chiSquare, "TKU_chiSquare/D");
+    outputTree->Branch("TKU_ndof", &TKU_ndof, "TKU_ndof/I");
+        outputTree->Branch("TKU_chiSquare_per_ndof", &TKU_chiSquare_per_ndof, "TKU_chiSquare_per_ndof/D");
     outputTree->Branch("TKU_pattRec_r", &TKU_patternRecognition_R, "TKU_pattRec_r/D");
     outputTree->Branch("TKU_pattRec_dipAngle", &TKU_patternRecognition_dipAngle, "TKU_pattRec_dipAngle/D");
     outputTree->Branch("TKU_pattRec_x0", &TKU_patternRecognition_x0, "TKU_pattRec_x0/D");
     outputTree->Branch("TKU_pattRec_y0", &TKU_patternRecognition_y0, "TKU_pattRec_y0/D");
-    outputTree->Branch("TKU_good", &TKU_goodParticle, "TKU_good/I");
-    outputTree->Branch("TKU_mass", &particle_mass, "TKU_mass/D");
-    outputTree->Branch("TKU_station_hits", &TKU_station_hits, "TKU_station_hits/I");
     outputTree->Branch("TKU_charge", &TKU_charge, "TKU_charge/I");
     
     
     
     
+
     
     
-    
-    
-    
-    // Rogers' particle tracking
-    if(!rogersTrackingFileName.isEmpty()){
-        outputTree->Branch("rogers_tracking_tof01_us", &rogers_tof01_us, "rogers_tracking_tof01_us/D");
-        outputTree->Branch("rogers_tracking_x_tof1_us", &rogers_x_tof1_us, "rogers_tracking_x_tof1_us/D");
-        outputTree->Branch("rogers_tracking_y_tof1_us", &rogers_y_tof1_us, "rogers_tracking_y_tof1_us/D");
-        outputTree->Branch("rogers_tracking_px_tof1_us", &rogers_px_tof1_us, "rogers_tracking_px_tof1_us/D");
-        outputTree->Branch("rogers_tracking_py_tof1_us", &rogers_py_tof1_us, "rogers_tracking_py_tof1_us/D");
-        outputTree->Branch("rogers_tracking_pz_tof1_us", &rogers_pz_tof1_us, "rogers_tracking_pz_tof1_us/D");
-        
-        outputTree->Branch("rogers_tracking_tof01_ds", &rogers_tof01_ds, "rogers_tracking_tof01_ds/D");
-        outputTree->Branch("rogers_tracking_x_tof1_ds", &rogers_x_tof1_ds, "rogers_tracking_x_tof1_ds/D");
-        outputTree->Branch("rogers_tracking_y_tof1_ds", &rogers_y_tof1_ds, "rogers_tracking_y_tof1_ds/D");
-        outputTree->Branch("rogers_tracking_px_tof1_ds", &rogers_px_tof1_ds, "rogers_tracking_px_tof1_ds/D");
-        outputTree->Branch("rogers_tracking_py_tof1_ds", &rogers_py_tof1_ds, "rogers_tracking_py_tof1_ds/D");
-        outputTree->Branch("rogers_tracking_pz_tof1_ds", &rogers_pz_tof1_ds, "rogers_tracking_pz_tof1_ds/D");
-        
-        outputTree->Branch("rogers_tracking_x_diffuser1", &rogers_x_diffuser1, "rogers_tracking_x_diffuser1/D");
-        outputTree->Branch("rogers_tracking_y_diffuser1", &rogers_y_diffuser1, "rogers_tracking_y_diffuser1/D");
-        outputTree->Branch("rogers_tracking_z_diffuser1", &rogers_z_diffuser1, "rogers_tracking_z_diffuser1/D");
-        outputTree->Branch("rogers_tracking_px_diffuser1", &rogers_px_diffuser1, "rogers_tracking_px_diffuser1/D");
-        outputTree->Branch("rogers_tracking_py_diffuser1", &rogers_py_diffuser1, "rogers_tracking_py_diffuser1/D");
-        outputTree->Branch("rogers_tracking_pz_diffuser1", &rogers_pz_diffuser1, "rogers_tracking_pz_diffuser1/D");
-        
-        outputTree->Branch("rogers_tracking_x_diffuser2", &rogers_x_diffuser2, "rogers_tracking_x_diffuser2/D");
-        outputTree->Branch("rogers_tracking_y_diffuser2", &rogers_y_diffuser2, "rogers_tracking_y_diffuser2/D");
-        outputTree->Branch("rogers_tracking_z_diffuser2", &rogers_z_diffuser2, "rogers_tracking_z_diffuser2/D");
-        outputTree->Branch("rogers_tracking_px_diffuser2", &rogers_px_diffuser2, "rogers_tracking_px_diffuser2/D");
-        outputTree->Branch("rogers_tracking_py_diffuser2", &rogers_py_diffuser2, "rogers_tracking_py_diffuser2/D");
-        outputTree->Branch("rogers_tracking_pz_diffuser2", &rogers_pz_diffuser2, "rogers_tracking_pz_diffuser2/D");
-        
-        
-        outputTree->Branch("rogers_tracking_x_diffuser3", &rogers_x_diffuser3, "rogers_tracking_x_diffuser3/D");
-        outputTree->Branch("rogers_tracking_y_diffuser3", &rogers_y_diffuser3, "rogers_tracking_y_diffuser3/D");
-        outputTree->Branch("rogers_tracking_z_diffuser3", &rogers_z_diffuser3, "rogers_tracking_z_diffuser3/D");
-        outputTree->Branch("rogers_tracking_px_diffuser3", &rogers_px_diffuser3, "rogers_tracking_px_diffuser3/D");
-        outputTree->Branch("rogers_tracking_py_diffuser3", &rogers_py_diffuser3, "rogers_tracking_py_diffuser3/D");
-        outputTree->Branch("rogers_tracking_pz_diffuser3", &rogers_pz_diffuser3, "rogers_tracking_pz_diffuser3/D");
-    }
-    
-    /* cuts: these will be 0 or 1 depending on whether the fail (0) or pass (1) the cut
-     *
-     *    cut_TOF0_goodPMTPosition (aka TOF0_goodPMTPosition), does this particle go through slabs that have PMT-position calibrations
-     *    cut_TOF1_goodPMTPosition (aka TOF1_goodPMTPosition), ditto
-     *    cut_goodRaynerReconstruction (aka TOF0_goodRaynerReconstruction), does this particle get a good result from M. Rayner's reconstruction process?
-     */
-    outputTree->Branch("cut_TOF0_goodPMTPosition", &TOF0_goodPMTPosition, "cut_TOF0_goodPMTPosition/I");
-    outputTree->Branch("cut_TOF1_goodPMTPosition", &TOF1_goodPMTPosition, "cut_TOF1_goodPMTPosition/I");
-    outputTree->Branch("cut_goodRaynerReconstruction", &goodRaynerReconstruction, "cut_goodRaynerReconstruction/I");
-    outputTree->Branch("cut_TKU_hitAllStations", &TKU_goodParticle, "cut_TKU_hitAllStations/I");
-    outputTree->Branch("cut_TimeOfFlight", &goodTimeOfFlight, "cut_TimeOfFlight/I");
-    outputTree->Branch("cut_hit_all_detectors", &all_detectors_hit, "cut_hit_all_detectors/I");
-    outputTree->Branch("cut_TOF0_singleHit", &only_hit_at_TOF0, "cut_TOF0_singleHit/I");
-    outputTree->Branch("cut_TOF1_singleHit", &only_hit_at_TOF1, "cut_TOF1_singleHit/I");
-    outputTree->Branch("cut_TKU_singleTrack", &only_track_in_TKU, "cut_TKU_singleTrack/I");
-    outputTree->Branch("cut_TKU_PValue", &goodPValue, "cut_TKU_PValue/I");
-    //outputTree->Branch("cut_muon_mass", &good_mass_cut, "cut_muon_mass/I");
-    outputTree->Branch("cut_momentum_loss", &good_momentum_loss_cut, "cut_momentum_loss/I");
-    
-    if(!rogersTrackingFileName.isEmpty()){
-        outputTree->Branch("cut_diffuser", &cut_diffuser, "cut_diffuser/I");
-    }
-    
-    // remember to update the selection for goodParticle if more cuts are added above
-    outputTree->Branch("cut_allPassed", &goodParticle, "cut_allPassed/I");
+
+    // cuts: these will be 0 or 1 depending on whether the fail (0) or pass (1) the cut
+    outputTree->Branch("cut_tof", &cut_tof, "cut_tof/I");
+    outputTree->Branch("cut_normalised_tof", &cut_normalised_tof, "cut_normalised_tof/I");
+    outputTree->Branch("cut_diffuser", &cut_diffuser, "cut_diffuser/I");
+    outputTree->Branch("cut_chindof", &cut_chindof, "cut_chindof/I");
+    outputTree->Branch("cut_tku_r", &cut_tku_r, "cut_tku_r/I");
+    outputTree->Branch("cut_one_tof0", &cut_one_tof0, "cut_one_tof0/I");
+    outputTree->Branch("cut_one_tof1", &cut_one_tof1, "cut_one_tof1/I");
+    outputTree->Branch("cut_one_track", &cut_one_track, "cut_one_track/I");
+    outputTree->Branch("cut_tof_p", &cut_tof_p, "cut_tof_p/I");
+    outputTree->Branch("cut_allPassed", &cut_allPassed, "cut_allPassed/I");
+    outputTree->Branch("cut_allButDiffuserPassed", &cut_allButDiffuserPassed, "cut_allButDiffuserPassed/I");
 }
 
 
@@ -694,7 +717,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
 
 
 
-void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString calibrationConstantsFile, QString trackingFileName){
+void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString calibrationConstantsFile){ //, QString trackingFileName){
     /*
      *  1. read the calibration file
      *  2. create the output root file
@@ -702,9 +725,13 @@ void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString cali
      *      a. Get a spacepoint at TOF0, reconstruct its (x, y) using pmt times
      *      b. Get a spacepoint at TOF1, do the same
      *      c. Get a track in the upstream tracker
+     *      d. Get the propagated track to the diffuser from Global Track Matching
      */
-    rogersTrackingFileName = trackingFileName;
-    file_line = 0;
+    multi_track_counter = 0;
+    
+    set_cut_values();
+
+
     readCalibrationFile(calibrationConstantsFile);
     define_root_file(fileToSaveAs);
     
@@ -730,8 +757,10 @@ void BetterReadMAUS::Read(QString fileToOpen, QString fileToSaveAs, QString cali
             // Found a spill that contains data. Iterate over all its events...
             
             readParticleEvent();
+
         }
     }
+
 
     print_tof_plots();
     
@@ -782,63 +811,25 @@ void BetterReadMAUS::readParticleEvent(){
         
         tof_event = (*spill->GetReconEvents())[i]->GetTOFEvent();
         scifi_event = (*spill->GetReconEvents())[i]->GetSciFiEvent();
-        
+        global_event = (*spill->GetReconEvents())[i]->GetGlobalEvent();
+        read_globals();
+
+
         if(tof_event != NULL){
             // there are hits at TOFs, estimate pz from them
             particle_at_TOF0();
             particle_at_TOF1();
+            
+            reconstruct_TOF_momentum();
         }
         
         if(scifi_event != NULL){
             particle_at_tracker(); // get tracker info
         }
         
-        calculate_particle_mass();
-        good_momentum_loss_cut = check_momentum_loss();
         
-        if(TOF0_goodPMTPosition == 1 && TOF1_goodPMTPosition == 1){
-            // reconstruct momentum at TOFs
-            reconstruct_TOF_momentum();
-        }
+        check_cuts();
         
-        if(TOF0_goodPMTPosition == 1 && TOF1_goodPMTPosition == 1
-           && TKU_goodParticle ==1){
-            all_detectors_hit = 1;
-        }
-        else{
-            all_detectors_hit = 0;
-        }
-        
-        if(particle_in_mass_range()){
-            good_mass_cut = 1;
-        }
-        else{
-            good_mass_cut = 0;
-        }
-        
-        /*
-         * Particles pass ALL cuts if:
-         *      -- all_detectors_hit = 1 (TOF0_goodPMTPosition, TOF1_goodPMTPosition, TKU_goodParticle = 1)
-         *      -- goodRaynerReconstruction = 1
-         *      -- only_hit_at_TOF0 = 1
-         *      -- only_hit_at_TOF1 = 1
-         *      -- only_track_in_TKU = 1
-         *      -- goodPValue = 1
-         *      -- good_mass_cut = 1
-         */
-        if(goodRaynerReconstruction ==1 && goodTimeOfFlight == 1
-           && all_detectors_hit == 1    && only_hit_at_TOF0 == 1
-           && only_hit_at_TOF1 == 1     && only_track_in_TKU == 1
-           && goodPValue == 1 && good_momentum_loss_cut == 1){
-            goodParticle = 1;
-        }
-        else{
-            goodParticle = 0;
-        }
-        
-        //if(all_detectors_hit == 1 && !rogersTrackingFileName.isEmpty())
-        if(!rogersTrackingFileName.isEmpty())
-            ReadRogersExtrapolation(spill_number, reconstructed_event_number);
         
         
         outputTree->Fill();
@@ -873,18 +864,16 @@ void BetterReadMAUS::particle_at_TOF0(){
     reset_TOF0_variables();  // each new space point should be a new set of slab hits
     horizontalHit = -1;
     verticalHit = -1;
+
+    number_of_TOF0_spacepoints = space_points.GetTOF0SpacePointArray().size();
+
+
+
     
     // 1. Loop over TOF0 space points:
     //for(size_t i = 0; i < space_points.GetTOF0SpacePointArray().size(); ++i){
     if(space_points.GetTOF0SpacePointArray().size() >=1){
         reset_TOF0_variables();  // each new space point should be a new set of slab hits
-        
-        if(space_points.GetTOF0SpacePointArray().size() == 1){
-            only_hit_at_TOF0 = 1;
-        }
-        else{
-            only_hit_at_TOF0 = 0;
-        }
         
         horizontalHit = -1;
         verticalHit = -1;
@@ -953,6 +942,8 @@ void BetterReadMAUS::particle_at_TOF1(){
     
     int horizontalHit, verticalHit;
     //  bool good_particle;
+
+    number_of_TOF1_spacepoints = space_points.GetTOF1SpacePointArray().size();
     
     
     // 1. Loop over TOF1 space points:
@@ -961,18 +952,15 @@ void BetterReadMAUS::particle_at_TOF1(){
     reset_TOF1_variables();  // each new space point should be a new set of slab hits
     horizontalHit = -1;
     verticalHit = -1;
+
+
+  //  std::cout << "space_points.GetTOF1SpacePointArray().size() = " << space_points.GetTOF1SpacePointArray().size() << "\n";
+
     
     if(space_points.GetTOF1SpacePointArray().size() >= 1){
         reset_TOF1_variables();  // each new space point should be a new set of slab hits
         horizontalHit = -1;
         verticalHit = -1;
-        
-        if(space_points.GetTOF1SpacePointArray().size() == 1){
-            only_hit_at_TOF1 = 1;
-        }
-        else{
-            only_hit_at_TOF1 = 0;
-        }
         
         
         //tof1_space_points = space_points.GetTOF1SpacePointArray()[i];
@@ -1022,18 +1010,18 @@ void BetterReadMAUS::particle_at_TOF1(){
 
 
 void BetterReadMAUS::particle_at_tracker(){
-    int tracker, station;
+    int tracker;
     MAUS::ThreeVector position;
 
 
-    std::cout << "Found track? Using: \n"
+   /* std::cout << "Found track? Using: \n"
               << "         get_mean_field_up() = " << scifi_event->get_mean_field_up() << "\n"
               << "         get_range_field_up() = " << scifi_event->get_range_field_up() << "\n"
               << "         get_variance_field_up()  = " << scifi_event->get_variance_field_up() << "\n\n"
               << "         get_mean_field_down() = " << scifi_event->get_mean_field_down() << "\n"
               << "         get_range_field_down() = " << scifi_event->get_range_field_down() << "\n"
               << "         get_variance_field_down()  = " << scifi_event->get_variance_field_down() << "\n";
-
+*/
 
     std::vector<MAUS::SciFiTrack*> tracks = scifi_event->scifitracks();
     std::vector<MAUS::SciFiHelicalPRTrack*> pr_tracks = scifi_event->helicalprtracks();
@@ -1049,17 +1037,9 @@ void BetterReadMAUS::particle_at_tracker(){
             TKU_patternRecognition_dipAngle = pr_track->get_dsdz();  //pr_track->get_phi0();
             TKU_patternRecognition_x0 = pr_track->get_circle_x0();
             TKU_patternRecognition_y0 = pr_track->get_circle_y0();
-            
-            TKU_station_hits = pr_track->get_num_points();
         }
     }
     
-    if(tracks.size() == 1){
-        only_track_in_TKU = 1;
-    }
-    else{
-        only_track_in_TKU = 0;
-    }
     
     //for(track_iter = tracks.begin(); track_iter != tracks.end(); ++track_iter){ // use if looking at all tracks
     if(tracks.size() != 0){ // use if only want to take the first track
@@ -1069,16 +1049,23 @@ void BetterReadMAUS::particle_at_tracker(){
         
         TKU_Pvalue = (*track_iter)->P_value();
         TKU_chiSquare = (*track_iter)->chi2();
+        TKU_ndof = (*track_iter)->ndf();
         TKU_charge = (*track_iter)->charge();
+        
+        TKU_chiSquare_per_ndof = TKU_chiSquare / (1.0*TKU_ndof);
         
         for(track_point_iter = track_points.begin(); track_point_iter != track_points.end(); ++track_point_iter){
             MAUS::SciFiTrackPoint* point = (*track_point_iter);
             tracker = point->tracker();
-            station = point->station();
+            //station = point->station();
             position = point->pos();
             
             if(tracker == 0){
+
+
                 if(point->station() == 1){
+
+
                     TKU_plane1_x = point->pos().x();
                     TKU_plane1_y = point->pos().y();
                     TKU_plane1_z = point->pos().z();
@@ -1089,6 +1076,11 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane1_p = TMath::Sqrt(TKU_plane1_px*TKU_plane1_px
                                                + TKU_plane1_py*TKU_plane1_py
                                                + TKU_plane1_pz*TKU_plane1_pz);
+                    
+                    TKU_plane1_r = TMath::Sqrt(TKU_plane1_x*TKU_plane1_x + TKU_plane1_y*TKU_plane1_y);
+                    TKU_plane1_pt = TMath::Sqrt(TKU_plane1_px*TKU_plane1_px
+                                                + TKU_plane1_py*TKU_plane1_py);
+                    
                     
                     TKU_plane1_pull = point->pull();
                     
@@ -1111,6 +1103,10 @@ void BetterReadMAUS::particle_at_tracker(){
                                                + TKU_plane2_py*TKU_plane2_py
                                                + TKU_plane2_pz*TKU_plane2_pz);
                     
+                    TKU_plane2_r = TMath::Sqrt(TKU_plane2_x*TKU_plane2_x + TKU_plane2_y*TKU_plane2_y);
+                    TKU_plane2_pt = TMath::Sqrt(TKU_plane2_px*TKU_plane2_px
+                                                + TKU_plane2_py*TKU_plane2_py);
+                    
                     TKU_plane2_pull = point->pull();
                     
                     std::vector<double> errors = point->errors();
@@ -1131,6 +1127,11 @@ void BetterReadMAUS::particle_at_tracker(){
                     TKU_plane3_p = TMath::Sqrt(TKU_plane3_px*TKU_plane3_px
                                                + TKU_plane3_py*TKU_plane3_py
                                                + TKU_plane3_pz*TKU_plane3_pz);
+                    
+                    TKU_plane3_r = TMath::Sqrt(TKU_plane3_x*TKU_plane3_x + TKU_plane3_y*TKU_plane3_y);
+                    TKU_plane3_pt = TMath::Sqrt(TKU_plane3_px*TKU_plane3_px
+                                                + TKU_plane3_py*TKU_plane3_py);
+                    
                     
                     TKU_plane3_pull = point->pull();
                     
@@ -1153,6 +1154,10 @@ void BetterReadMAUS::particle_at_tracker(){
                                                + TKU_plane4_py*TKU_plane4_py
                                                + TKU_plane4_pz*TKU_plane4_pz);
                     
+                    TKU_plane4_r = TMath::Sqrt(TKU_plane4_x*TKU_plane4_x + TKU_plane4_y*TKU_plane4_y);
+                    TKU_plane4_pt = TMath::Sqrt(TKU_plane4_px*TKU_plane4_px
+                                                + TKU_plane4_py*TKU_plane4_py);
+                    
                     TKU_plane4_pull = point->pull();
                     
                     std::vector<double> errors = point->errors();
@@ -1174,6 +1179,10 @@ void BetterReadMAUS::particle_at_tracker(){
                                                + TKU_plane5_py*TKU_plane5_py
                                                + TKU_plane5_pz*TKU_plane5_pz);
                     
+                    TKU_plane5_r = TMath::Sqrt(TKU_plane5_x*TKU_plane5_x + TKU_plane5_y*TKU_plane5_y);
+                    TKU_plane5_pt = TMath::Sqrt(TKU_plane5_px*TKU_plane5_px
+                                                + TKU_plane5_py*TKU_plane5_py);
+                    
                     TKU_plane5_pull = point->pull();
                     
                     std::vector<double> errors = point->errors();
@@ -1186,20 +1195,27 @@ void BetterReadMAUS::particle_at_tracker(){
             }
         }
     }
-    if(TKU_station_hits == 5){
-        TKU_goodParticle = 1;
-    }
-    else{
-        TKU_goodParticle = 0;
-    }
     
-    if(TKU_Pvalue >= 0.01){
-        goodPValue = 1;
+
+
+    // count tracks in TKU:
+    for(track_iter = tracks.begin(); track_iter != tracks.end(); ++track_iter){ // use if looking at all tracks
+        //track_iter = tracks.begin();
+        std::vector<MAUS::SciFiTrackPoint*> track_points = (*track_iter)->scifitrackpoints();
+        std::vector<MAUS::SciFiTrackPoint*>::iterator track_point_iter;
+        for(track_point_iter = track_points.begin(); track_point_iter != track_points.end(); ++track_point_iter){
+            MAUS::SciFiTrackPoint* point = (*track_point_iter);
+            tracker = point->tracker();
+
+            if(tracker == 0){
+                number_of_TKU_tracks++;
+
+            }
+        }
     }
-    else{
-        goodPValue = 0;
-    }
-    
+
+
+    number_of_TKU_tracks = number_of_TKU_tracks / 15;
 }
 
 
@@ -1234,26 +1250,25 @@ void BetterReadMAUS::SetBeamlineParameters(double min_tof, double max_tof, doubl
 void BetterReadMAUS::reconstruct_TOF_momentum(){
     QHash<QString, double> result;
     double dt = TOF1_hitTime - TOF0_hitTime;
-    double L = beamlineTracking_TOF1_zPosition - beamlineTracking_TOF0_zPosition;
+    double L = TOF1_z - TOF0_z;
     double mu_mass = 105.658367*u.MeV();
     double dt_cal;
     
     if(dt >= beamlineTracking_min_tof && dt <= beamlineTracking_max_tof){
-        goodTimeOfFlight = 1;
+      //  goodTimeOfFlight = 1;
         
         dt_cal = dt - beamlineTracking_data_ele_tof + (L + beamlineTracking_sim_ele_path)/u.c_light();
-        
-        //std::cout << "About to reconstruct a TOF event with: "
-        //          << "dt = " << dt_cal << ", (x0, y0, x1, y1) = ("
-        //          << TOF0_x << ", " << TOF0_y << ", " << TOF1_x << ", " << TOF1_y << ")\n";
         
         tracking->ReconstructEvent(dt_cal, TOF0_x, TOF1_x, TOF0_y, TOF1_y, mu_mass);
     }
     else{
-        goodTimeOfFlight = 0;
+       // goodTimeOfFlight = 0;
         dt_cal = dt - beamlineTracking_data_ele_tof + (L + beamlineTracking_sim_ele_path)/u.c_light();
         tracking->Bad(dt_cal, TOF0_x, TOF1_x, TOF0_y, TOF1_y, mu_mass);
     }
+    
+    time_of_flight = dt;
+    normalised_time_of_flight = dt - beamlineTracking_data_ele_tof + (L + beamlineTracking_sim_ele_path)/TMath::C();
     
     result = tracking->Result();
     TOF0_xPrime = result.value("ax0");
@@ -1265,7 +1280,7 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
     TOF1_pz = result.value("P");
     TOF0_pz = TOF1_pz + result.value("dP"); // made a momentum correction based on air...
     
-    //std::cout << "Pz at TOF1 = " << TOF1_pz << ", TOF0 = " << TOF0_pz << ", dPz = " << result.value("dP") << "\n";
+    
     
     TOF0_px = TOF0_xPrime * TOF0_pz;
     TOF0_py = TOF0_yPrime * TOF0_pz;
@@ -1275,7 +1290,7 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
     TOF0_p = TMath::Sqrt(TOF0_px*TOF0_px + TOF0_py*TOF0_py + TOF0_pz*TOF0_pz);
     TOF1_p = TMath::Sqrt(TOF1_px*TOF1_px + TOF1_py*TOF1_py + TOF1_pz*TOF1_pz);
     
-    goodRaynerReconstruction = result.value("good");
+    //goodRaynerReconstruction = result.value("good");
     
     //std::cout << ".... reconstruction returned good = " << goodRaynerReconstruction << "\n";
 }
@@ -1283,267 +1298,18 @@ void BetterReadMAUS::reconstruct_TOF_momentum(){
 
 
 
-void BetterReadMAUS::calculate_particle_mass(){
-    double p_corr = 18.82;
-    double t_mu = TOF1_hitTime - TOF0_hitTime; // time in ns
-    double t_electron = 25.48;
-    double beta = t_electron/t_mu;
-    double gamma = 1.0/TMath::Sqrt(1.0 - beta*beta);
-    
-    double p_track = TKU_plane1_p;
-    
-    particle_mass = (p_track + p_corr) / (beta * gamma);
-    //std::cout << "p_track = " << p_track << ", beta = "  << beta
-    //          << ", gamma = " << gamma << ", m_calc =  " << particle_mass << "\n";
-}
 
-bool BetterReadMAUS::particle_in_mass_range(){
-    if(particle_mass >= 99.0 && particle_mass <= 112.0){
-        return true;
-    }
-    else{
-        return false;
-    }
-    return false;
-}
-
-
-
-
-bool BetterReadMAUS::check_momentum_loss(){
-    double m = 105.6583715;
-    momentum_loss_cut_lower_limit = 5.0;
-    momentum_loss_cut_upper_limit = 43.4;//35.0;
-    
-    bool passes = false;
-    
-    
-    double tof = TOF1_hitTime - TOF0_hitTime;
-    
-    double beta_tof = 25.48/tof;
-    double gamma_tof = 1.0/TMath::Sqrt(1.0 - beta_tof*beta_tof);
-    double beta_gamma_tof = beta_tof*gamma_tof;
-    
-    double min_cut = (TKU_plane1_p + momentum_loss_cut_lower_limit) / m;
-    double max_cut = (TKU_plane1_p + momentum_loss_cut_upper_limit) / m;
-    
-    
-    if(beta_gamma_tof >= min_cut && beta_gamma_tof <= max_cut){
-        passes = true;
-    }
-    
-    return passes;
-}
-
-
-
-
-void BetterReadMAUS::ReadRogersExtrapolation(int some_spill, int some_event){
-
-
-    some_spill = some_spill + 1;
-
-
-    /*
-     * Chris Rogers has extrapolated tracks from TKU station 5
-     * back to TOF1 and through the diffuser. We want to add
-     * this information to our ROOT file for easier analysis
-     *
-     * NB: This file can be for either DATA or MONTE CARLO.
-     */
-    
-    //std::cout << "Reading Chris Rogers extrapolated tracks from file " << rogersTrackingFileName.toStdString() << "...";
-    
-    rogers_z_diffuser1 = 13720.0; // z of most upstream plane of diffuser
-    rogers_z_diffuser2 = 13730.0;  // z of the middle of the diffuser
-    rogers_z_diffuser3 = 13740.0;
-
-    double rogers_z_tof1_ds = 12929.6;
-    double rogers_z_tof1_us = 12904.4;
-    
-    QFile file(rogersTrackingFileName);
-    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        std::cerr << "Failed to read tracking file.\n";
-        return;
-    }
-    
-    QTextStream in(&file);
-    in.seek(file_line);
-    bool gotTOF1_us = false;
-    bool gotTOF1_ds = false;
-    bool gotDiffuser1 = false;
-    bool gotDiffuser2 = false;
-    bool gotDiffuser3 = false;
-    bool done = false;
-    
-    while(!done){
-
-        QString line = in.readLine();
-        
-        std::cout << "Looking for spill " << some_spill << " and event " << some_event << "\n";
-        if(in.atEnd()){
-            break;
-        }
-
-
-        if(!line.contains("#")){
-            // the line gives us some tracking info...
-            QStringList list = line.split(" ", QString::SkipEmptyParts);
-            
-
-            std::cout << " ... considering tracked spill " << list.at(0).toInt() << ", event  " << list.at(1).toInt() << "\n";
-
-            // is this the spill and event we're looking for?
-            if(list.at(0).toInt() == some_spill && list.at(1).toInt() == some_event){
-
-                std::cout << " -----> MATCH!\n";
-
-
-
-                // now we've got one of four lines associated with the (spill, event) of interest
-                if(list.at(5).toDouble() == rogers_z_tof1_us){
-                    std::cout << " ----------> Got TOF1 u/s \n";
-                    gotTOF1_us = true;
-                    rogers_tof01_us = list.at(2).toDouble();
-                    rogers_x_tof1_us = list.at(3).toDouble();
-                    rogers_y_tof1_us = list.at(4).toDouble();
-                    rogers_px_tof1_us = list.at(6).toDouble();
-                    rogers_py_tof1_us = list.at(7).toDouble();
-                    rogers_pz_tof1_us = list.at(8).toDouble();
-                }
-                else if(list.at(5).toDouble() == rogers_z_tof1_ds){
-                    // this is TOF1 tracked data
-                    std::cout << " ----------> Got TOF1 d/s \n";
-                    gotTOF1_ds = true;
-                    rogers_tof01_ds = list.at(2).toDouble();
-                    rogers_x_tof1_ds = list.at(3).toDouble();
-                    rogers_y_tof1_ds = list.at(4).toDouble();
-                    rogers_px_tof1_ds = list.at(6).toDouble();
-                    rogers_py_tof1_ds = list.at(7).toDouble();
-                    rogers_pz_tof1_ds = list.at(8).toDouble();
-                }
-                else if(list.at(5).toDouble() == rogers_z_diffuser1){
-                    std::cout << " ----------> Got Diffuser 1 \n";
-                    gotDiffuser1 = true;
-                    rogers_x_diffuser1 = list.at(3).toDouble();
-                    rogers_y_diffuser1 = list.at(4).toDouble();
-                    rogers_px_diffuser1 = list.at(6).toDouble();
-                    rogers_py_diffuser1 = list.at(7).toDouble();
-                    rogers_pz_diffuser1 = list.at(8).toDouble();
-                }
-                else if(list.at(5).toDouble() == rogers_z_diffuser2){
-                    std::cout << " ----------> Got Diffuser 2 \n";
-                    gotDiffuser2 = true;
-                    rogers_x_diffuser2 = list.at(3).toDouble();
-                    rogers_y_diffuser2 = list.at(4).toDouble();
-                    rogers_px_diffuser2 = list.at(6).toDouble();
-                    rogers_py_diffuser2 = list.at(7).toDouble();
-                    rogers_pz_diffuser2 = list.at(8).toDouble();
-                }
-                else if(list.at(5).toDouble() == rogers_z_diffuser3){
-                    std::cout << " ----------> Got Diffuser 3 \n";
-                    gotDiffuser3 = true;
-                    rogers_x_diffuser3 = list.at(3).toDouble();
-                    rogers_y_diffuser3 = list.at(4).toDouble();
-                    rogers_px_diffuser3 = list.at(6).toDouble();
-                    rogers_py_diffuser3 = list.at(7).toDouble();
-                    rogers_pz_diffuser3 = list.at(8).toDouble();
-                }
-                else{
-                    std::cout << " In Rogers extrapolation got z = " << list.at(5).toDouble()  << "\n";
-                }
-                
-            }
-            else if(list.at(0).toInt() == some_spill && list.at(1).toInt() > some_event){
-          //      // event isn't in file, so call it quits:
-                cut_diffuser = 0;
-          //      file_line = in.pos() - 1;
-          //      if(file_line <= 0){
-          //          file_line = 0;
-          //      }
-                done = true;
-            }
-            else if(list.at(0).toInt() > some_spill){// && list.at(1).toInt() == some_event)
-                // spill isn't in file, so call it quits:
-                cut_diffuser = 0;
-          //      file_line = in.pos() - qint64(1);
-          //      if(file_line <= 0){
-          //          file_line = 0;
-          //      }
-               done = true;
-            }
-
-
-            // are we done?
-            //if(gotTOF1_us && gotTOF1_ds && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
-            if(gotTOF1_ds && gotDiffuser1 && gotDiffuser2 && gotDiffuser3){
-                double r1 = TMath::Sqrt(rogers_x_diffuser1*rogers_x_diffuser1 + rogers_y_diffuser1*rogers_y_diffuser1);
-                double r2 = TMath::Sqrt(rogers_x_diffuser2*rogers_x_diffuser2 + rogers_y_diffuser2*rogers_y_diffuser2);
-                double r3 = TMath::Sqrt(rogers_x_diffuser3*rogers_x_diffuser3 + rogers_y_diffuser3*rogers_y_diffuser3);
-                double max_radius = 95.0;
-                
-                file_line = in.pos();
-                if(r1 <= max_radius && r2 <= max_radius && r3 <= max_radius){
-                    cut_diffuser = 1;
-                }
-                else{
-                    cut_diffuser = 0;
-                }
-                
-                done = true;
-                //std::cout << "... done\n";
-            }
-        }
-        if(in.atEnd()){
-            done = true;
-        }
-    }
-    
-    file.flush();
-    file.close();
-}
-
-
-
-
-void BetterReadMAUS::reset_rogers_tracking(){
-    rogers_spill = -1;
-    rogers_event = -1;
+void BetterReadMAUS::reset_diffuser_variables(){
     cut_diffuser = -1;
-    rogers_tof01_us = TMath::Infinity();
-    rogers_x_tof1_us = TMath::Infinity();
-    rogers_y_tof1_us = TMath::Infinity();
-    rogers_px_tof1_us = TMath::Infinity();
-    rogers_py_tof1_us = TMath::Infinity();
-    rogers_pz_tof1_us = TMath::Infinity();
-    rogers_tof01_ds = TMath::Infinity();
-    rogers_x_tof1_ds = TMath::Infinity();
-    rogers_y_tof1_ds = TMath::Infinity();
-    rogers_px_tof1_ds = TMath::Infinity();
-    rogers_py_tof1_ds = TMath::Infinity();
-    rogers_pz_tof1_ds = TMath::Infinity();
-    rogers_x_diffuser1 = TMath::Infinity();
-    rogers_y_diffuser1 = TMath::Infinity();
-    rogers_z_diffuser1 = TMath::Infinity();
-    rogers_px_diffuser1 = TMath::Infinity();
-    rogers_py_diffuser1 = TMath::Infinity();
-    rogers_pz_diffuser1 = TMath::Infinity();
-    rogers_x_diffuser2 = TMath::Infinity();
-    rogers_y_diffuser2 = TMath::Infinity();
-    rogers_z_diffuser2 = TMath::Infinity();
-    rogers_px_diffuser2 = TMath::Infinity();
-    rogers_py_diffuser2 = TMath::Infinity();
-    rogers_pz_diffuser2 = TMath::Infinity();
-    rogers_x_diffuser3 = TMath::Infinity();
-    rogers_y_diffuser3 = TMath::Infinity();
-    rogers_z_diffuser3 = TMath::Infinity();
-    rogers_px_diffuser3 = TMath::Infinity();
-    rogers_py_diffuser3 = TMath::Infinity();
-    rogers_pz_diffuser3 = TMath::Infinity();
+
+    diffuser_x = TMath::Infinity();
+    diffuser_y = TMath::Infinity();
+    diffuser_z = 13740.0;
+
+    diffuser_px = TMath::Infinity();
+    diffuser_py = TMath::Infinity();
+    diffuser_pz = TMath::Infinity();
 }
-
-
-
 
 
 
@@ -1557,15 +1323,7 @@ void BetterReadMAUS::reset_mc_particle_variables(){
     mc_tof0_z = 5260.66; //5286.0;
     mc_tof1_z_us = 12904.4; //12930.0;
     mc_tof1_z_ds = 12954.5; //12930.0;
-    /*mc_tku_s1_z = 15060.0;
-     mc_tku_s2_z = 14860.0;
-     mc_tku_s3_z = 14610.0;
-     mc_tku_s4_z = 14310.0;
-     mc_tku_s5_z = 13960.0;
-     mc_diffuser_z1 = 13961.7; // z of most upstream plane of diffuser
-     mc_diffuser_z2 = 13962.4;  // z of the middle of the diffuser
-     mc_diffuser_z3 = 13963.0;
-     */
+
     mc_tku_s1_z = 15062.3;
     mc_tku_s2_z = 14861.4;
     mc_tku_s3_z = 14612.4;
@@ -1807,23 +1565,22 @@ void BetterReadMAUS::define_mc_root_file(QString saveAs){
 
 
 
-
 void BetterReadMAUS::ReadMC(QString fileToOpen, QString fileToSaveAs){
-    /*
-     *  1. read the calibration file
-     *  2. create the output root file
-     *  3. read the maus input file
-     *      a. Get a spacepoint at TOF0, reconstruct its (x, y) using pmt times
-     *      b. Get a spacepoint at TOF1, do the same
-     *      c. Get a track in the upstream tracker
-     */
+    //
+    //  1. read the calibration file
+    //  2. create the output root file
+    //  3. read the maus input file
+    //      a. Get a spacepoint at TOF0, reconstruct its (x, y) using pmt times
+    //      b. Get a spacepoint at TOF1, do the same
+    //      c. Get a track in the upstream tracker
+    //
     
     define_mc_root_file(fileToSaveAs);
     
     MAUS::Data data;
     irstream infile(fileToOpen.toStdString().c_str(), "Spill");
     
-    int count = 0;
+    
     
     last_event_number = 0;
     mc_spill_counter = 1;
@@ -1901,7 +1658,10 @@ void BetterReadMAUS::readMCParticleEvent(){
                 testping = true;
             }
             
-            //std::cout << "Plane position = " << position.z() << " compared to z = " << mc_diffuser_z1 << ", "  << mc_diffuser_z2 << ", or " << mc_diffuser_z3 << "\n";
+            std::cout << "Plane position = " << position.z() << "\n";
+            if(position.z() >= 10000.0){
+                std::cout << "       Plane > 9000!\n";
+            }
             
             if(position.z() >= mc_tof0_z - dz && position.z() <= mc_tof0_z + dz){
                 if(testping){
@@ -2111,3 +1871,257 @@ void BetterReadMAUS::write_mc_to_file(){
     outputTree->Fill();
 }
 
+
+
+void BetterReadMAUS::read_globals(){
+    double dz = 0.1;
+
+    std::vector<MAUS::DataStructure::Global::PrimaryChain*>* pchains = global_event->get_primary_chains();
+    std::vector<MAUS::DataStructure::Global::PrimaryChain*>::iterator pchains_iterator;
+
+
+    MAUS::DataStructure::Global::DetectorPoint diffuser_plane = MAUS::DataStructure::Global::kVirtual;
+    for(pchains_iterator = pchains->begin(); pchains_iterator != pchains->end(); ++ pchains_iterator){
+        MAUS::DataStructure::Global::PrimaryChain* chain = (*pchains_iterator);
+
+        // chain types 1 & 3 are upstream tracks that have been matched through to
+        // the downstream half of the experiment or are just upstream only.
+        if(chain->get_chain_type() == 1 || chain->get_chain_type() == 3){
+
+            std::vector<MAUS::DataStructure::Global::Track*> some_tracks = chain->GetMatchedTracks();
+
+            std::vector<MAUS::DataStructure::Global::Track*>::iterator some_track_iterator;
+
+            for(some_track_iterator = some_tracks.begin(); some_track_iterator < some_tracks.end(); ++some_track_iterator){
+                MAUS::DataStructure::Global::Track* a_track = (*some_track_iterator);
+
+                if(a_track != NULL){
+                    if(a_track->get_pid() == -13 || a_track->get_pid() == 13){
+
+
+                        std::vector< const MAUS::DataStructure::Global::TrackPoint * > track_points = a_track->GetTrackPoints(diffuser_plane);
+                        for(int p = 0; p < track_points.size(); p++){
+                            TLorentzVector a_track_mom = track_points.at(p)->get_momentum();
+                            TLorentzVector a_track_pos = track_points.at(p)->get_position();
+                            
+                            if(a_track_pos.Z() >= diffuser_z-dz && a_track_pos.Z() <= diffuser_z+dz){
+                                diffuser_x = a_track_pos.X();
+                                diffuser_y = a_track_pos.Y();
+                                diffuser_px=  a_track_mom.X();
+                                diffuser_py = a_track_mom.Y();
+                                diffuser_pz = a_track_mom.Z();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+void BetterReadMAUS::check_cuts(){
+    
+    // time of flight
+    if(time_of_flight >= min_tof && time_of_flight <= max_tof){
+        cut_tof = 1;
+    }
+    else{
+        cut_tof = 0;
+    }
+    
+    // 'normalised' time of flight (relative to mean electron time of flight)
+    if(normalised_time_of_flight >= min_normalised_tof && normalised_time_of_flight <= max_normalised_tof){
+        cut_normalised_tof = 1;
+    }
+    else{
+        cut_normalised_tof = 0;
+    }
+    
+    // diffuser aperture
+    if(diffuser_r <= max_diffuser){
+        cut_diffuser = 1;
+    }
+    else{
+        cut_diffuser = 0;
+    }
+    
+    // chi-square per degree of freedom
+    if(TKU_chiSquare_per_ndof <= max_chindof){
+        cut_chindof = 1;
+    }
+    else{
+        cut_chindof = 0;
+    }
+    
+    // 'banana' cut on time of flight and tku total momentum
+    double m = 105.668;
+    double L = TOF1_z - TOF0_z;
+    L = L * 1.0e-3;
+    
+    double t_min, t_max;
+    
+    double p_min = TKU_plane1_p + min_dP;
+    double p_max = TKU_plane1_p + max_dP;
+    
+    t_min = L * TMath::Sqrt(m*m + p_min*p_min) / (TMath::C()*p_min);
+    t_max = L * TMath::Sqrt(m*m + p_max*p_max) / (TMath::C()*p_max);
+    
+    t_min = t_min/1.0e-9; // ns
+    t_max = t_max/1.0e-9;
+    
+    
+    if(time_of_flight <= t_min && time_of_flight >= t_max){
+        cut_tof_p = 1;
+    }
+    else{
+        cut_tof_p = 0;
+    }
+
+    
+    // TKU radius cut
+    if(muon_stays_in_tracker() == true){
+        cut_tku_r = 1;
+    }
+    else{
+        cut_tku_r = 0;
+    }
+    
+    
+    // one spacepoint at TOF0
+    if(number_of_TOF0_spacepoints == 1){
+        cut_one_tof0 = 1;
+    }
+    else{
+        cut_one_tof0 = 0;
+    }
+
+    // one spacepoint at TOF1
+    if(number_of_TOF1_spacepoints == 1){
+        cut_one_tof1 = 1;
+    }
+    else{
+        cut_one_tof1 = 0;
+    }
+    
+    // one track in TKU
+    if(number_of_TKU_tracks == 1){
+        cut_one_track = 1;
+    }
+    else{
+        cut_one_track = 0;
+    }
+
+    
+    
+    if(cut_tof == 1
+       && cut_normalised_tof == 1
+       && cut_diffuser == 1
+       && cut_chindof == 1
+       && cut_one_tof0 == 1
+       && cut_one_tof1 == 1
+       && cut_one_track == 1
+       && cut_tku_r == 1
+       && cut_tof_p == 1){
+        cut_allPassed = 1;
+    }
+    else{
+        cut_allPassed = 0;
+    }
+    
+    if(cut_tof == 1
+       && cut_normalised_tof == 1
+       && cut_chindof == 1
+       && cut_one_tof0 == 1
+       && cut_one_tof1 == 1
+       && cut_one_track == 1
+       && cut_tku_r == 1
+       && cut_tof_p == 1){
+        cut_allButDiffuserPassed = 1;
+    }
+    else{
+        cut_allButDiffuserPassed = 0;
+    }
+}
+
+
+
+
+bool BetterReadMAUS::muon_stays_in_tracker(){
+    // Propagate from TKU station 5 to 1 first, checking for r > 150mm
+    bool stays_inside_tracker = true;
+    double x_i = TKU_plane5_x;
+    double y_i = TKU_plane5_y;
+    double z_i = TKU_plane5_z;
+    double px_i = TKU_plane5_px;
+    double py_i = TKU_plane5_py;
+    double pz_i = TKU_plane5_pz;
+    
+    double dz = 1.0;
+    double B = 3.998;
+    double u = -0.3*B;
+    double kappa = 1.0/pz_i;
+    double theta = u * kappa * dz;
+    double dPz = -2.8/1100.0; // make this + for propagating from 1-->5
+    
+    double target_z = TKU_plane1_z;
+    
+    double r;
+    
+    
+    
+    while(z_i < target_z){
+        x_i = x_i + (px_i/u)*TMath::Sin(theta) - (py_i/u)*(1.0 - TMath::Cos(theta));
+        y_i = y_i + (py_i/u)*TMath::Sin(theta) + (px_i/u)*(1.0 - TMath::Cos(theta));
+        z_i = z_i + dz;
+        px_i = px_i*TMath::Cos(theta) - py_i*TMath::Sin(theta);
+        py_i = py_i*TMath::Cos(theta) + px_i*TMath::Sin(theta);
+        pz_i = pz_i + dPz*dz;
+        
+        r = TMath::Sqrt(x_i*x_i + y_i*y_i);
+        if(r >= max_tku_radius){
+            stays_inside_tracker = false;
+            return stays_inside_tracker;
+        }
+    }
+    
+    
+    // and if that didn't go outside the tracker, check by propagating backwards:
+    x_i = TKU_plane1_x;
+    y_i = TKU_plane1_y;
+    z_i = TKU_plane1_z;
+    px_i = TKU_plane1_px;
+    py_i = TKU_plane1_py;
+    pz_i = TKU_plane1_pz;
+    
+    dz = -1.0;
+    B = 3.998;
+    u = -0.3*B;
+    kappa = 1.0/pz_i;
+    theta = u * kappa * dz;
+    dPz = 2.8/1100.0; // make this + for propagating from 1-->5
+    
+    target_z = TKU_plane5_z;
+    
+    
+    while(z_i > target_z){
+        x_i = x_i + (px_i/u)*TMath::Sin(theta) - (py_i/u)*(1.0 - TMath::Cos(theta));
+        y_i = y_i + (py_i/u)*TMath::Sin(theta) + (px_i/u)*(1.0 - TMath::Cos(theta));
+        z_i = z_i + dz;
+        px_i = px_i*TMath::Cos(theta) - py_i*TMath::Sin(theta);
+        py_i = py_i*TMath::Cos(theta) + px_i*TMath::Sin(theta);
+        pz_i = pz_i + dPz*dz;
+        
+        r = TMath::Sqrt(x_i*x_i + y_i*y_i);
+        if(r >= max_tku_radius){
+            stays_inside_tracker = false;
+            return stays_inside_tracker;
+        }
+    }
+    
+    
+    // and if none of that triggers:
+    return stays_inside_tracker;
+}
