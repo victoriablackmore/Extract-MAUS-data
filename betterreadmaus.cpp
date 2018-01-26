@@ -606,6 +606,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s1_px_error", &TKU_plane1_px_error, "TKU_s1_px_error/D");
     outputTree->Branch("TKU_s1_py_error", &TKU_plane1_py_error, "TKU_s1_py_error/D");
     outputTree->Branch("TKU_s1_kappa_error", &TKU_plane1_kappa_error, "TKU_s1_kappa_error/D");
+    outputTree->Branch("TKU_s1_pz_error", &TKU_plane1_pz_error, "TKU_s1_pz_error/D");
     
     outputTree->Branch("TKU_s2_x", &TKU_plane2_x, "TKU_s2_x/D"); // station 2
     outputTree->Branch("TKU_s2_y", &TKU_plane2_y, "TKU_s2_y/D");
@@ -624,6 +625,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s2_px_error", &TKU_plane2_px_error, "TKU_s2_px_error/D");
     outputTree->Branch("TKU_s2_py_error", &TKU_plane2_py_error, "TKU_s2_py_error/D");
     outputTree->Branch("TKU_s2_kappa_error", &TKU_plane2_kappa_error, "TKU_s2_kappa_error/D");
+    outputTree->Branch("TKU_s2_pz_error", &TKU_plane2_pz_error, "TKU_s2_pz_error/D");
     
     outputTree->Branch("TKU_s3_x", &TKU_plane3_x, "TKU_s3_x/D"); // station 3
     outputTree->Branch("TKU_s3_y", &TKU_plane3_y, "TKU_s3_y/D");
@@ -642,6 +644,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s3_px_error", &TKU_plane3_px_error, "TKU_s3_px_error/D");
     outputTree->Branch("TKU_s3_py_error", &TKU_plane3_py_error, "TKU_s3_py_error/D");
     outputTree->Branch("TKU_s3_kappa_error", &TKU_plane3_kappa_error, "TKU_s3_kappa_error/D");
+    outputTree->Branch("TKU_s3_pz_error", &TKU_plane3_pz_error, "TKU_s3_pz_error/D");
     
     outputTree->Branch("TKU_s4_x", &TKU_plane4_x, "TKU_s4_x/D"); // station 4
     outputTree->Branch("TKU_s4_y", &TKU_plane4_y, "TKU_s4_y/D");
@@ -660,6 +663,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s4_px_error", &TKU_plane4_px_error, "TKU_s4_px_error/D");
     outputTree->Branch("TKU_s4_py_error", &TKU_plane4_py_error, "TKU_s4_py_error/D");
     outputTree->Branch("TKU_s4_kappa_error", &TKU_plane4_kappa_error, "TKU_s4_kappa_error/D");
+    outputTree->Branch("TKU_s4_pz_error", &TKU_plane4_pz_error, "TKU_s4_pz_error/D");
     
     outputTree->Branch("TKU_s5_x", &TKU_plane5_x, "TKU_s5_x/D"); // station 1
     outputTree->Branch("TKU_s5_y", &TKU_plane5_y, "TKU_s5_y/D");
@@ -678,7 +682,7 @@ void BetterReadMAUS::define_root_file(QString saveAs){
     outputTree->Branch("TKU_s5_px_error", &TKU_plane5_px_error, "TKU_s5_px_error/D");
     outputTree->Branch("TKU_s5_py_error", &TKU_plane5_py_error, "TKU_s5_py_error/D");
     outputTree->Branch("TKU_s5_kappa_error", &TKU_plane5_kappa_error, "TKU_s5_kappa_error/D");
-    
+    outputTree->Branch("TKU_s5_pz_error", &TKU_plane5_pz_error, "TKU_s5_pz_error/D");
     
     outputTree->Branch("TKU_assumed_field", &TKU_assumed_field, "TKU_assumed_field/D");
     outputTree->Branch("TKU_chiSquare", &TKU_chiSquare, "TKU_chiSquare/D");
@@ -1061,7 +1065,7 @@ void BetterReadMAUS::particle_at_tracker(){
             position = point->pos();
             
             if(tracker == 0){
-
+               
 
                 if(point->station() == 1){
 
@@ -1084,12 +1088,19 @@ void BetterReadMAUS::particle_at_tracker(){
                     
                     TKU_plane1_pull = point->pull();
                     
-                    std::vector<double> errors = point->errors();
+                    /*std::vector<double> errors = point->errors();
                     TKU_plane1_x_error = errors[0];
                     TKU_plane1_px_error = errors[1];
                     TKU_plane1_y_error = errors[2];
                     TKU_plane1_py_error = errors[3];
                     TKU_plane1_kappa_error = errors[4];
+                     */
+                    TKU_plane1_x_error = point->pos_error().x();
+                    TKU_plane1_y_error = point->pos_error().y();
+                    TKU_plane1_px_error = point->mom_error().x();
+                    TKU_plane1_py_error = point->mom_error().y();
+                    TKU_plane1_pz_error = point->mom_error().z();
+                    
                 }
                 else if(point->station() == 2){
                     TKU_plane2_x = point->pos().x();
@@ -1109,12 +1120,19 @@ void BetterReadMAUS::particle_at_tracker(){
                     
                     TKU_plane2_pull = point->pull();
                     
-                    std::vector<double> errors = point->errors();
+                    /*std::vector<double> errors = point->errors();
                     TKU_plane2_x_error = errors[0];
                     TKU_plane2_px_error = errors[1];
                     TKU_plane2_y_error = errors[2];
                     TKU_plane2_py_error = errors[3];
                     TKU_plane2_kappa_error = errors[4];
+                     */
+                    TKU_plane2_x_error = point->pos_error().x();
+                    TKU_plane2_y_error = point->pos_error().y();
+                    TKU_plane2_px_error = point->mom_error().x();
+                    TKU_plane2_py_error = point->mom_error().y();
+                    TKU_plane2_pz_error = point->mom_error().z();
+                    
                 }
                 else if(point->station() == 3){
                     TKU_plane3_x = point->pos().x();
@@ -1135,12 +1153,19 @@ void BetterReadMAUS::particle_at_tracker(){
                     
                     TKU_plane3_pull = point->pull();
                     
-                    std::vector<double> errors = point->errors();
+                    /*std::vector<double> errors = point->errors();
                     TKU_plane3_x_error = errors[0];
                     TKU_plane3_px_error = errors[1];
                     TKU_plane3_y_error = errors[2];
                     TKU_plane3_py_error = errors[3];
                     TKU_plane3_kappa_error = errors[4];
+                     */
+                    TKU_plane3_x_error = point->pos_error().x();
+                    TKU_plane3_y_error = point->pos_error().y();
+                    TKU_plane3_px_error = point->mom_error().x();
+                    TKU_plane3_py_error = point->mom_error().y();
+                    TKU_plane3_pz_error = point->mom_error().z();
+                    
                 }
                 else if(point->station() == 4){
                     TKU_plane4_x = point->pos().x();
@@ -1160,12 +1185,20 @@ void BetterReadMAUS::particle_at_tracker(){
                     
                     TKU_plane4_pull = point->pull();
                     
-                    std::vector<double> errors = point->errors();
+                    /* std::vector<double> errors = point->errors();
                     TKU_plane4_x_error = errors[0];
                     TKU_plane4_px_error = errors[1];
                     TKU_plane4_y_error = errors[2];
                     TKU_plane4_py_error = errors[3];
                     TKU_plane4_kappa_error = errors[4];
+                     */
+                    TKU_plane4_x_error = point->pos_error().x();
+                    TKU_plane4_y_error = point->pos_error().y();
+                    TKU_plane4_px_error = point->mom_error().x();
+                    TKU_plane4_py_error = point->mom_error().y();
+                    TKU_plane4_pz_error = point->mom_error().z();
+                    
+                    
                 }
                 else{
                     TKU_plane5_x = point->pos().x();
@@ -1185,12 +1218,18 @@ void BetterReadMAUS::particle_at_tracker(){
                     
                     TKU_plane5_pull = point->pull();
                     
-                    std::vector<double> errors = point->errors();
+                    /*std::vector<double> errors = point->errors();
                     TKU_plane5_x_error = errors[0];
                     TKU_plane5_px_error = errors[1];
                     TKU_plane5_y_error = errors[2];
                     TKU_plane5_py_error = errors[3];
                     TKU_plane5_kappa_error = errors[4];
+                    */
+                    TKU_plane5_x_error = point->pos_error().x();
+                    TKU_plane5_y_error = point->pos_error().y();
+                    TKU_plane5_px_error = point->mom_error().x();
+                    TKU_plane5_py_error = point->mom_error().y();
+                    TKU_plane5_pz_error = point->mom_error().z();
                 }
             }
         }
@@ -1875,6 +1914,8 @@ void BetterReadMAUS::write_mc_to_file(){
 
 void BetterReadMAUS::read_globals(){
     double dz = 0.1;
+    
+    std::cout << "Globals...\n";
 
     std::vector<MAUS::DataStructure::Global::PrimaryChain*>* pchains = global_event->get_primary_chains();
     std::vector<MAUS::DataStructure::Global::PrimaryChain*>::iterator pchains_iterator;
@@ -1882,6 +1923,8 @@ void BetterReadMAUS::read_globals(){
 
     MAUS::DataStructure::Global::DetectorPoint diffuser_plane = MAUS::DataStructure::Global::kVirtual;
     for(pchains_iterator = pchains->begin(); pchains_iterator != pchains->end(); ++ pchains_iterator){
+        
+        std::cout << "iterating?\n";
         MAUS::DataStructure::Global::PrimaryChain* chain = (*pchains_iterator);
 
         // chain types 1 & 3 are upstream tracks that have been matched through to
@@ -1904,12 +1947,22 @@ void BetterReadMAUS::read_globals(){
                             TLorentzVector a_track_mom = track_points.at(p)->get_momentum();
                             TLorentzVector a_track_pos = track_points.at(p)->get_position();
                             
+                            std::cout << "Looking for z = " << diffuser_z << " and have z = " << a_track_pos.Z();
+                            
                             if(a_track_pos.Z() >= diffuser_z-dz && a_track_pos.Z() <= diffuser_z+dz){
+                                std::cout << "-------------- FOUND IT!!!\n";
                                 diffuser_x = a_track_pos.X();
                                 diffuser_y = a_track_pos.Y();
                                 diffuser_px=  a_track_mom.X();
                                 diffuser_py = a_track_mom.Y();
                                 diffuser_pz = a_track_mom.Z();
+                                
+                                diffuser_r = TMath::Sqrt(diffuser_x*diffuser_x + diffuser_y*diffuser_y);
+                                diffuser_pt = TMath::Sqrt(diffuser_px*diffuser_px + diffuser_py*diffuser_py);
+                                diffuser_p = TMath::Sqrt(diffuser_px*diffuser_px + diffuser_py*diffuser_py + diffuser_pz*diffuser_pz);
+                            }
+                            else{
+                                std::cout << "\n";
                             }
                         }
                     }
