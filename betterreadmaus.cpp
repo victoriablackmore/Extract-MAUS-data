@@ -41,7 +41,7 @@ void BetterReadMAUS::SetDataType(bool thisIsData, bool thisIsMCRecon, bool thisI
 void BetterReadMAUS::set_cut_values(){
    
     min_tof = 27.0;
-    max_tof = 33.0;
+    max_tof = 32.0;
     
     min_normalised_tof = 1.0;
     max_normalised_tof = 6.0;
@@ -49,7 +49,7 @@ void BetterReadMAUS::set_cut_values(){
     max_chindof = 4.0; //2.5;
     max_tku_radius = 150.0;
     min_tku_radius = 0.0;
-    max_diffuser = 80.0;
+    max_diffuser = 90.0;
     
     // for tku P vs tof selection:
     mean_dP = 20.0; // difference in total momentum at u/s side of TOF1 and TKU station 1
@@ -1734,7 +1734,7 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tof1_xPrime_us = mc_tof1_px_us/mc_tof1_pz_us;
                 mc_tof1_yPrime_us = mc_tof1_py_us/mc_tof1_pz_us;
                 mc_tof1_t_us = hit.GetTime();
-                mc_particle_id = hit.GetParticleId();
+                
             }
             else if(position.z() >= mc_tof1_z_ds - dz && position.z() <= mc_tof1_z_ds + dz){
                 if(testping){
@@ -1770,6 +1770,8 @@ void BetterReadMAUS::readMCParticleEvent(){
                 mc_tku_s1_B = TMath::Sqrt(field.x()*field.x() + field.y()*field.y() + field.z()*field.z());
 
                 std::cout << "Field at TKU station 1 = " << mc_tku_s1_B << "\n";
+                
+                mc_particle_id = hit.GetParticleId();
             }
             else if(position.z() >= mc_tku_s2_z - dz && position.z() <= mc_tku_s2_z + dz){
                 if(testping){
